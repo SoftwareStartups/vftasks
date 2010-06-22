@@ -1,0 +1,10 @@
+.PHONY: clean_all clean
+
+clean_all:: clean
+	rm -rf $(LIBDIR) $(RESULT)
+
+clean::
+	rm -rf $(OBJDIR)
+
+$(OBJDIR) $(BINDIR) $(LIBDIR) $(PLATFORM):
+	mkdir -p $@

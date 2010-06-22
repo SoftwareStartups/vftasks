@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# print a platform identifier for the code that gcc generates.
+
+S=`gcc -dumpmachine`
+MACH=`echo "$S" | awk -F- '{print $1}'`
+OS=`echo "$S" | awk -F- '{print $2}'`
+
+echo ${MACH}-${OS}

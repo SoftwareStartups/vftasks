@@ -1,0 +1,13 @@
+SHELL := /bin/bash -o pipefail
+unexport CDPATH
+
+PLATFORM := $(shell $(VFROOT)/scripts/gcc_platform)
+
+OBJDIR = $(COMPDIR)/obj/$(PLATFORM)
+LIBDIR = $(COMPDIR)/lib/$(PLATFORM)
+INCDIR = $(COMPDIR)/include
+SRCDIR = $(COMPDIR)/src
+
+VFSTREAMDIR = $(VFROOT)/vfstream
+VFSTREAM_INCDIR = $(VFSTREAMDIR)/include
+VFSTREAM_LIBDIR = $(VFSTREAMDIR)/lib/$(PLATFORM)
