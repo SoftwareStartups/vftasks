@@ -1,7 +1,7 @@
-COMPS := vfstream unit-test example
+COMPS := vfstream unit-test example doc
 TESTS := unit-test example
 
-.PHONY: default all test clean clean_all $(COMPS)
+.PHONY: default all test doc clean clean_all $(COMPS)
 
 default all: $(COMPS)
 
