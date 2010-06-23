@@ -1,0 +1,67 @@
+1 vfStream Installation
+=======================
+
+This file describes how to build the vfStream library on your local system.
+
+
+2 Obtaining vfStream
+====================
+
+  1. Download vfStream archive from the Vector Fabrics website
+     http://www.vectorfabrics.com/crm/vfstream.
+     This requires an active account for any of the Vector Fabrics products.
+
+  2. Unpack the vfStream archive in a local directory.
+     $ gzip -cd vfstream-<version>.tar.gz | tar xf -
+     $ cd vfstream-<version>
+
+
+3 Prerequisites
+===============
+
+  * The GNU C compiler (gcc) is required. Alternative ANSI C compilers may be used but are not tested.
+
+  * To build the source, the GNU Make system is used (http://www.gnu.org/software/make)
+
+  * To compile and run the unit tests, the GNU C++ compiler (g++) or alternative ANSI C++ compiler is required.
+    In addition, the CppUnit library is required (http://sourceforge.net/apps/mediawiki/cppunit)
+
+  * To build the (html) documentation from the sources, Doxygen is required (http://www.stack.nl/~dimitri/doxygen)
+
+The build has been verified on Ubuntu 9.10 64 bits and 32 bits with gcc/g++ version 4.4.1, CppUnit version , and Doxygen 1.6.3
+
+3.1 Debian/Ubuntu
+-----------------
+
+  * Install the following packages to build the sources:
+    $ sudo apt-get install gcc libc-dev libc6-dev make
+
+  * To build the unit test and documentation, install the following packages:
+    $ sudo apt-get install g++ libcppunit-dev doxygen
+
+
+4 Building vfStream
+===================
+
+  * Build vfstream:
+    $ cd vfstream-<version>
+    $ make vfstream
+
+    The vfStream library is created in vfstream-<version>/vfstream/lib/<platform>/libvfstream.a
+    The include files are located in vfstream-<version>/vfstream/include
+
+  * Build and run the unit tests:
+    $ make test
+
+  * Build the html documentation:
+    $ make doc
+    
+    The documentation is located under vfstream-<version>/doc/html/
+
+  * Clean the object files with:
+    $ make clean
+
+    or to start from a clean distribution:
+    $ make clean_all
+
+

@@ -1,0 +1,8 @@
+vfStream changelog
+==================
+
+Version 1.0.0
+-------------
+(initial public release, released July 12, 2010)
+
+- Initial release to vfAnalyst customers as part of vfLabs
