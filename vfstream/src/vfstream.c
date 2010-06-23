@@ -1,42 +1,43 @@
-/** @file vfstream.c
-   A FIFO channel consists of a circular buffer that can hold N tokens plus one
-   void token.
-   The channel state includes a tail and a head pointer.
-   If tail == head, then the channel is empty.
-   The token just before head is always void (i.e., unused) so tail can never
-   bump into head.
-   The limit parameter points to the first address beyond the buffer space,
-   and the base parameter is the first address of the buffer.
-   The head pointer is advanced by vfstream_release_room.
-   The tail pointer is advanced by vfstream_release_data.
-   @verbatim
-               base              head         tail        limit
-                |                  |            |           |
-                |                  |            |           |
-                V                  V            V           V
-                +--------------+---+------------+-----------+
-                |              | v |            |           |
-                |    room      | o |    data    |   room    |
-                |              | i |            |           |
-                |              | d |            |           |
-                +--------------+---+------------+-----------+
-                                         ^           ^
-                                         |           |
-                                         |           |
-                                       data        room
-   @endverbatim
-   Normally two ports are connected to the channel.
-   A write port maintains a room pointer and a read port maintains a data
-   pointer.
-   The data and room pointers are NOT part of the channel state.
-   The data pointer is advanced by vfstream_acquire_data.
-   The room pointer is advanced by vfstream_acquire_room.
-   It is possible to acquire multiple data tokens before releasing room.
-   Calling vfstream_release_room releases the oldest acquired data token.
-   It is possible to acquire multiple room tokens before releasing new data.
-   Calling vfstream_release_data releases the oldest acquired room token.
-*/
-
+/** \mainpage vfStream library API documentation
+ *
+ * \section intro_sec Introduction
+ *  A FIFO channel consists of a circular buffer that can hold N tokens plus one
+ *  void token.
+ *  The channel state includes a tail and a head pointer.
+ *  If tail == head, then the channel is empty.
+ *  The token just before head is always void (i.e., unused) so tail can never
+ *  bump into head.
+ *  The limit parameter points to the first address beyond the buffer space,
+ *  and the base parameter is the first address of the buffer.
+ *  The head pointer is advanced by vfstream_release_room.
+ *  The tail pointer is advanced by vfstream_release_data.
+ *  @verbatim
+ *              base              head         tail        limit
+ *               |                  |            |           |
+ *               |                  |            |           |
+ *               V                  V            V           V
+ *               +--------------+---+------------+-----------+
+ *               |              | v |            |           |
+ *               |    room      | o |    data    |   room    |
+ *               |              | i |            |           |
+ *               |              | d |            |           |
+ *               +--------------+---+------------+-----------+
+ *                                        ^           ^
+ *                                        |           |
+ *                                        |           |
+ *                                      data        room
+ *  @endverbatim
+ *  Normally two ports are connected to the channel.
+ *  A write port maintains a room pointer and a read port maintains a data
+ *  pointer.
+ *  The data and room pointers are NOT part of the channel state.
+ *  The data pointer is advanced by vfstream_acquire_data.
+ *  The room pointer is advanced by vfstream_acquire_room.
+ *  It is possible to acquire multiple data tokens before releasing room.
+ *  Calling vfstream_release_room releases the oldest acquired data token.
+ *  It is possible to acquire multiple room tokens before releasing new data.
+ *  Calling vfstream_release_data releases the oldest acquired room token.
+ */
 #include "vfstream.h"
 
 #include <stdlib.h>   /* for abort  */
