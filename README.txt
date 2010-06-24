@@ -1,4 +1,4 @@
-vfStream 1.0.0
+vfStream 1.0
 ==============
 
 This file describes the vfStream library from Vector Fabrics.
@@ -31,23 +31,7 @@ Documentation and Support
 Copyright
 =========
 
-  All of the code in this distribution is Copyright (c) 2007-2010
+  All of the code in this distribution is Copyright (c) 2010
   Vector Fabrics B.V.
 
   The included LICENSE.txt file describes the license in detail.
-
-
-Warranty
-========
-
-  THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER
-  EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS
-  TO THE USE OF THIS SOFTWARE IS WITH YOU.
-
-  IN NO EVENT WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY
-  AND/OR REDISTRIBUTE THE LIBRARY, BE LIABLE TO YOU FOR ANY DAMAGES, EVEN IF
-  SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-  DAMAGES.
-
-  Again, see the included LICENSE.txt file for specific legal details.
