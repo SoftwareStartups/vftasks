@@ -3,21 +3,17 @@
 
 
 #include <stdint.h>    /* for int8_t, int16_t, ... */
-#include <stddef.h>    /* for size_t               */
+#include <stddef.h>    /* for size_t, and NULL     */
 
-
-#ifndef NULL
-#define NULL 0
-#endif
-
-#ifndef false
-#ifndef __cplusplus
+/* Must fix the stuff below. false needs to be included from stdbool.h
+ * however including stdbool.h is tricky, such code does not even compile
+ * in some systems, look for nptypes.h in google code search to see why. */
+#if defined(false) || defined(__cplusplus)
+typedef bool bool_t;
+#else
 typedef int bool_t;
 #define false 0
 #define true 1
-#else
-typedef bool bool_t;
-#endif
 #endif
 
 
