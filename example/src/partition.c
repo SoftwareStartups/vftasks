@@ -34,11 +34,16 @@
  */
 typedef struct info_s
 {
-  int data[PROBLEM_SIZE];  /* the data                  */
   pthread_mutex_t mutex;   /* mutex                     */
   pthread_cond_t cond;     /* resume-condition variable */
 }
 info_t;
+
+/* Data local to the writer, but initialized by main() */
+int writer_data[PROBLEM_SIZE];
+
+/* Data communicated between the reader and main() */
+int reader_data[PROBLEM_SIZE];
 
 /* very slow successor
  */
@@ -77,16 +82,12 @@ void *writer(void *arg)
 {
   unsigned int i;         /* index      */
   vfstream_wport_t *wport;  /* write port */
-  int *data;              /* data array */
 
   /* retrieve write port */
   wport = (vfstream_wport_t *)arg;
 
-  /* retrieve data array */
-  data = (int *)vfstream_get_chan_info(vfstream_chan_of_wport(wport));
-
   /* write data */
-  for (i = 0; i < PROBLEM_SIZE; ++i) vfstream_write_int32(wport, succ(data[i]));
+  for (i = 0; i < PROBLEM_SIZE; ++i) vfstream_write_int32(wport, succ(writer_data[i]));
 
   /* flush */
   vfstream_flush_data(wport);
@@ -153,16 +154,12 @@ void *reader(void *arg)
 {
   unsigned int i;         /* index      */
   vfstream_rport_t *rport;  /* read port  */
-  int *data;              /* data array */
 
   /* retrieve read port */
   rport = (vfstream_rport_t *)arg;
 
-  /* retrieve data array */
-  data = (int *)vfstream_get_chan_info(vfstream_chan_of_rport(rport));
-
   /* read data */
-  for (i = 0; i < PROBLEM_SIZE; ++i) data[i] = dbl(vfstream_read_int32(rport));
+  for (i = 0; i < PROBLEM_SIZE; ++i) reader_data[i] = dbl(vfstream_read_int32(rport));
 
   /* flush */
   vfstream_flush_room(rport);
@@ -239,8 +236,8 @@ int main()
   void *trv ;                /* thread return value */
   int result;                /* computed result     */
 
-  /* intialize the data array */
-  for (i = 0; i < PROBLEM_SIZE; ++i) info.data[i] = i;
+  /* intialize the writer data array */
+  for (i = 0; i < PROBLEM_SIZE; ++i) writer_data[i] = i;
 
   /* initialize the memory manager */
   mem_mgr.malloc = malloc;
@@ -374,7 +371,7 @@ int main()
   vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
 
   /* compute the result */
-  result = sum(info.data);
+  result = sum(reader_data);
 
   /* check the result */
   if (result == EXPECTED_RESULT)
