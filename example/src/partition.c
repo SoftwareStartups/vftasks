@@ -30,7 +30,7 @@
   }
 
 
-/* application-specific data to be asscoiated with FIFO channel
+/* application-specific data to be asscociated with FIFO channel
  */
 typedef struct info_s
 {
