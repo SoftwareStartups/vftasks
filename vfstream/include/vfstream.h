@@ -273,12 +273,12 @@ int vfstream_get_min_data(vfstream_chan_t *chan);
  */
 void vfstream_set_chan_info(vfstream_chan_t *chan, void *info);
 
-/* Retrieves application-specific data from a given FIFO channel.
+/** Retrieves application-specific data from a given FIFO channel.
  *
- * @param  chan  A pointer to the channel.
+ *  @param  chan  A pointer to the channel.
  *
- * @return
- *   A pointer to the application-specific data.
+ *  @return
+ *    A pointer to the application-specific data.
  */
 void *vfstream_get_chan_info(vfstream_chan_t *chan);
 
