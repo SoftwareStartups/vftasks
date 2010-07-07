@@ -148,7 +148,7 @@ struct vfstream_rport_s
  * Creation and destruction of channels and ports
  * ***************************************************************************/
 
-#ifndef VFACCEL
+#ifndef VFPOLLING
 
 /** default writer hook
  */
@@ -355,7 +355,7 @@ void vfstream_destroy_read_port(vfstream_rport_t *rport,
   port_space->free(rport);
 }
 
-#endif /* VFACCEL */
+#endif /* VFPOLLING */
 
 
 /* ***************************************************************************
@@ -623,7 +623,7 @@ __inline__ vfstream_token_t *vfstream_acquire_room(vfstream_wport_t *wport)
     token = vfstream_acquire_room_nb(wport);
     if (token != NULL) return token;
 
-#ifndef VFACCEL
+#ifndef VFPOLLING
     /* acquisition failed; put writer to sleep */
     {
       vfstream_chan_t *chan;          /* pointer to the channel                */
@@ -655,7 +655,7 @@ __inline__ vfstream_token_t *vfstream_acquire_room(vfstream_wport_t *wport)
       chan->rport->wakeup_zone_start = NULL;
       chan->rport->wakeup_zone_end = NULL;
     }
-#endif /* VFACCEL */
+#endif /* VFPOLLING */
   }
   while (true);
 }
@@ -683,7 +683,7 @@ __inline__ void vfstream_release_data(vfstream_wport_t *wport,
   wport->cached_state.tail = new_tail;
   chan->state.tail = new_tail;
 
-#ifndef VFACCEL
+#ifndef VFPOLLING
   /* if necessary, resume reader */
   {
     vfstream_token_t *wakeup_zone_start;  /* start of wake-up zone */
@@ -759,7 +759,7 @@ __inline__ vfstream_token_t *vfstream_acquire_data(vfstream_rport_t *rport)
     token = vfstream_acquire_data_nb(rport);
     if (token != NULL) return token;
 
-#ifndef VFACCEL
+#ifndef VFPOLLING
     /* acquisition failed; put reader to sleep */
     {
       vfstream_chan_t *chan;          /* pointer to the channel                */
@@ -790,7 +790,7 @@ __inline__ vfstream_token_t *vfstream_acquire_data(vfstream_rport_t *rport)
       chan->wport->wakeup_zone_start = NULL;
       chan->wport->wakeup_zone_end = NULL;
     }
-#endif /* VFACCEL */
+#endif /* VFPOLLING */
   }
   while (true);
 }
@@ -818,7 +818,7 @@ __inline__ void vfstream_release_room(vfstream_rport_t *rport,
   rport->cached_state.head = new_head;
   chan->state.head = new_head;
 
-#ifndef VFACCEL
+#ifndef VFPOLLING
   /* if necessary, resume writer */
   {
     vfstream_token_t *wakeup_zone_start;  /* start of wake-up zone */
@@ -988,7 +988,7 @@ void *vfstream_get_ptr(vfstream_token_t *token, size_t offset)
  */
 void vfstream_flush_data(vfstream_wport_t *wport)
 {
-#ifndef VFACCEL
+#ifndef VFPOLLING
   vfstream_token_t *wakeup_zone_start;  /* start of wake-up zone */
 
   /* retrieve start of wake-up zone */
@@ -1005,14 +1005,14 @@ void vfstream_flush_data(vfstream_wport_t *wport)
       /* resume reader */
       (*chan->resume_reader)(chan->rport);
   }
-#endif /* VFACCEL */
+#endif /* VFPOLLING */
 }
 
 /** flush room
  */
 void vfstream_flush_room(vfstream_rport_t *rport)
 {
-#ifndef VFACCEL
+#ifndef VFPOLLING
   vfstream_token_t *wakeup_zone_start;  /* start of wake-up zone */
 
   /* retrieve start of wake-up zone */
@@ -1029,7 +1029,7 @@ void vfstream_flush_room(vfstream_rport_t *rport)
       /* resume writer */
       (*chan->resume_writer)(chan->wport);
   }
-#endif /* VFACCEL */
+#endif /* VFPOLLING */
 }
 
 
