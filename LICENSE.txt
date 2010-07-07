@@ -12,7 +12,7 @@ modification, are permitted provided that the following conditions are met:
      if this software is incorporated into software that provides significant
      additional functionality to that of this software and from which the
      software in its original form cannot be easily reconstructed
-   * Neither the name of the <organization> nor the
+   * Neither the name of Vector Fabrics nor the
      names of its contributors may be used to endorse or promote products
      derived from this software without specific prior written permission.
 
