@@ -3,8 +3,8 @@ vfStream 1.0
 
 This file describes the vfStream library from Vector Fabrics.
 
-What is this?
-=============
+What is vfStream?
+=================
 
   vfStream is a streaming library with a C API to communicate data between POSIX threads.
 
