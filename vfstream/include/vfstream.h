@@ -106,7 +106,7 @@
  *  the FIFO.
  *
  *  vfStream also allows the programmer to specify blocking behavior by
- *  means of hooks.
+ *  means of hooks. The hooks can be set using the function vfstream_install_chan_hooks().
  *
  * \section sec_tokens_stuff Tokens, channels and ports
  *  Tokens are the basic unit of information that can be communicated
