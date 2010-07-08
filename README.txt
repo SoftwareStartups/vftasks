@@ -8,7 +8,7 @@ What is vfStream?
 
   vfStream is a streaming library with a C API to communicate data between POSIX threads.
 
-  For more information, visit http://www.vectorfabrics.com
+  For more information, visit http://www.vectorfabrics.com/content/vfstream
 
 Installing
 ==========
@@ -25,7 +25,8 @@ Unit Tests
 Documentation and Support
 =========================
 
-  Examples on how to use vfStream APIs are located in example/src;
+  Examples on how to use vfStream APIs are located in example/src.
+  See http://www.vectorfabrics.com/content/products/vfstream for the example documentation.
 
 
 Copyright
