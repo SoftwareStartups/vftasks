@@ -20,7 +20,7 @@ test:
 	@for d in $(TESTS); do \
 	  $(MAKE) -C $$d $@ ; \
 	done
-	
+
 clean clean_all:
 	@for d in $(COMPS); do \
 	  $(MAKE) -C $$d $@ ; \
