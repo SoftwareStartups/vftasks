@@ -9,7 +9,17 @@
 COMPS := vfstream unit-test example doc
 TESTS := unit-test example
 RELEASE := vfstream
-
+RELEASE_FILES := \
+	LICENSE.txt \
+	README.txt \
+	INSTALL.txt \
+	doc \
+	vfstream \
+	example \
+	Makefile \
+	unit-test \
+	scripts
+	
 .PHONY: default all test release clean clean_all $(COMPS)
 
 default all: $(COMPS)
@@ -26,7 +36,7 @@ release: $(COMPS)
 	tar -czvf $(RELEASE).tar.gz \
 		--exclude obj --exclude lib \
 		--exclude-vcs \
-		--exclude $(RELEASE).tar.gz .
+		--exclude $(RELEASE).tar.gz $(RELEASE_FILES)
 
 clean clean_all:
 	@for d in $(COMPS); do \
