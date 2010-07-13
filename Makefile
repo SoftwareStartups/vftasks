@@ -8,8 +8,10 @@
 
 COMPS := vfstream unit-test example doc
 TESTS := unit-test example
+VERSION := 1.0
+RELEASE := vfstream-$(VERSION)
 
-.PHONY: default all test doc clean clean_all $(COMPS)
+.PHONY: default all test release clean clean_all $(COMPS)
 
 default all: $(COMPS)
 
@@ -20,6 +22,12 @@ test:
 	@for d in $(TESTS); do \
 	  $(MAKE) -C $$d $@ ; \
 	done
+
+releas: all
+	tar -czvf $(RELEASE).tar.gz \
+		--exclude obj --exclude lib \
+		--exclude .hg --exclude .hgignore \
+		--exclude $(RELEASE).tar.gz .
 
 clean clean_all:
 	@for d in $(COMPS); do \
