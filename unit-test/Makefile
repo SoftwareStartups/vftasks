@@ -31,4 +31,7 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.cpp | $(OBJDIR)
 test: $(RESULT)
 	@./$^
 
+clean_all::
+	rm -f result.xml
+
 include $(VFROOT)/scripts/Make.rules
