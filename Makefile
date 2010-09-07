@@ -20,12 +20,15 @@ RELEASE_FILES := \
 	unit-test \
 	scripts
 	
-.PHONY: default all test release clean clean_all $(COMPS)
+.PHONY: default all install test release clean clean_all $(COMPS)
 
 default all: $(COMPS)
 
 $(COMPS):
 	$(MAKE) -C $@
+
+install:
+	VFSTREAM_INCDIR=$(VFINSTALL)/include VFSTREAM_LIBDIR=$(VFINSTALL)/lib $(MAKE) -C vfstream $@
 
 test:
 	@for d in $(TESTS); do \

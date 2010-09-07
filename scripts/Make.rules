@@ -14,5 +14,5 @@ clean_all:: clean
 clean::
 	rm -rf $(OBJDIR)
 
-$(OBJDIR) $(BINDIR) $(LIBDIR) $(PLATFORM):
+$(OBJDIR) $(BINDIR) $(LIBDIR) $(VFSTREAM_INCDIR) $(VFSTREAM_LIBDIR) $(PLATFORM):
 	mkdir -p $@
