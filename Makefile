@@ -28,7 +28,7 @@ $(COMPS):
 	$(MAKE) -C $@
 
 install:
-	VFSTREAM_INCDIR=$(VFINSTALL)/include VFSTREAM_LIBDIR=$(VFINSTALL)/lib $(MAKE) -C vfstream $@
+	$(MAKE) -C vfstream $@
 
 test:
 	@for d in $(TESTS); do \

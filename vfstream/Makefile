@@ -10,31 +10,34 @@ COMPDIR = .
 VFROOT := $(shell cd .. && pwd)
 include $(VFROOT)/scripts/Make.defs
 
-RESULT     := $(LIBDIR)/libvfstream.a
-TGT_RESULT := $(VFSTREAM_LIBDIR)/libvfstream.a
-CFLAGS     := -O3 -I$(INCDIR)
+TGT_LIBDIR := $(VFSTREAMINSTALL)/lib
+TGT_INCDIR := $(VFSTREAMINSTALL)/include
 
-SRC        := $(wildcard $(SRCDIR)/*.c)
-OBJ        := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o, $(SRC))
-INC        := $(wildcard $(INCDIR)/*.h)
-TGT_INC    := $(patsubst $(INCDIR)/%,$(VFSTREAM_INCDIR)/%, $(INC))
+SRC     := $(wildcard $(SRCDIR)/*.c)
+OBJ     := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o, $(SRC))
+INC     := $(wildcard $(INCDIR)/*.h)
+
+RESULT  := $(LIBDIR)/libvfstream.a
+TGT_LIB := $(TGT_LIBDIR)/libvfstream.a
+TGT_INC := $(patsubst $(INCDIR)/%,$(TGT_INCDIR)/%, $(INC))
+CFLAGS  := -O3 -I$(INCDIR)
 
 .PHONY : default all clean clean_all install
 
 default all: $(RESULT)
 
-install: $(TGT_RESULT) $(TGT_INC)
+install: $(TGT_LIB) $(TGT_INC)
 
 $(RESULT): $(OBJ) | $(LIBDIR)
 	$(AR) cr $@ $^
 
-$(TGT_RESULT): $(RESULT) | $(VFSTREAM_LIBDIR)
+$(TGT_LIB): $(RESULT) | $(TGT_LIBDIR)
 	$(UPDATE) $< $@
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.c $(INC) | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(VFSTREAM_INCDIR)/%.h: $(INCDIR)/%.h | $(VFSTREAM_INCDIR)
+$(TGT_INCDIR)/%.h: $(INCDIR)/%.h | $(TGT_INCDIR)
 	$(UPDATE) $< $@
 
 include $(VFROOT)/scripts/Make.rules

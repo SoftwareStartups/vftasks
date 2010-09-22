@@ -9,10 +9,10 @@
 .PHONY: clean_all clean
 
 clean_all:: clean
-	rm -rf $(LIBDIR) $(RESULT)
+	rm -rf $(LIBDIR) $(RESULT) $(VFSTREAMINSTALL)
 
 clean::
 	rm -rf $(OBJDIR)
 
-$(OBJDIR) $(BINDIR) $(LIBDIR) $(VFSTREAM_INCDIR) $(VFSTREAM_LIBDIR) $(PLATFORM):
+$(OBJDIR) $(BINDIR) $(LIBDIR) $(TGT_INCDIR) $(TGT_LIBDIR) $(PLATFORM):
 	mkdir -p $@
