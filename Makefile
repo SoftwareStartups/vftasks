@@ -8,8 +8,10 @@
 
 COMPS := vfstream unit-test example doc
 TESTS := unit-test example
-RELEASE := vfstream
-RELEASE_FILES := \
+TAR_BASENAME := vfstream
+RELEASE_COMPS := lib include
+RELEASE_DIRS := $(addprefix $(VFSTREAMINSTALL)/,$(RELEASE_COMPS))
+DEPLOY_FILES := \
 	LICENSE.txt \
 	README.txt \
 	INSTALL.txt \
@@ -20,7 +22,7 @@ RELEASE_FILES := \
 	unit-test \
 	scripts
 	
-.PHONY: default all install test release clean clean_all $(COMPS)
+.PHONY: default all install test release deploy clean clean_all $(COMPS)
 
 default all: $(COMPS)
 
@@ -35,16 +37,22 @@ test:
 	  $(MAKE) -C $$d $@ ; \
 	done
 
-release: $(COMPS)
-	tar -czvf $(RELEASE).tar.gz \
+release: $(RELEASE_DIRS)
+	cd $(VFSTREAMINSTALL) && tar -czvf $(TAR_BASENAME).tgz $(RELEASE_COMPS)
+
+deploy: $(COMPS)
+	tar -czvf $(TAR_BASENAME).tar.gz \
 		--exclude obj --exclude lib \
 		--exclude-vcs \
-		--exclude $(RELEASE).tar.gz $(RELEASE_FILES)
+		--exclude $(TAR_BASENAME).tar.gz $(DEPLOY_FILES)
 
-clean clean_all:
+clean:
 	@for d in $(COMPS); do \
 	  $(MAKE) -C $$d $@ ; \
 	done
+
+clean_all: clean
+	rm -rf $(VFSTREAMINSTALL)
 
 unit-test: vfstream
 example: vfstream
