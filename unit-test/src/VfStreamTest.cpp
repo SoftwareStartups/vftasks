@@ -216,7 +216,7 @@ void VfStreamTest::testWritePortRenewal()
   vfstream_destroy_write_port(this->wport, this->mem_mgr);
 
   // verify that a new write port can be connected now
-  vfstream_create_write_port(this->chan, this->mem_mgr);
+  this->wport = vfstream_create_write_port(this->chan, this->mem_mgr);
   CPPUNIT_ASSERT(this->wport != NULL);
 }
 
@@ -228,7 +228,7 @@ void VfStreamTest::testReadPortRenewal()
   vfstream_destroy_read_port(this->rport, this->mem_mgr);
 
   // verify that a new read port can be connected now
-  vfstream_create_read_port(this->chan, this->mem_mgr);
+  this->rport = vfstream_create_read_port(this->chan, this->mem_mgr);
   CPPUNIT_ASSERT(this->rport != NULL);
 }
 
