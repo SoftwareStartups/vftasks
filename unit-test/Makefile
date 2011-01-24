@@ -16,7 +16,7 @@ LDFLAGS := -L$(VFSTREAM_LIBDIR)
 RESULT := unit_test
 
 SRC := $(wildcard $(SRCDIR)/*.cpp)
-OBJ := $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o, $(SRC))
+OBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o, $(SRC))
 
 .PHONY: default all test
 
