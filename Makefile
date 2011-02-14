@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Vector Fabrics B.V. All rights reserved.
+# Copyright (c) 2010-2011 Vector Fabrics B.V. All rights reserved.
 
 # This file contains proprietary and confidential information of Vector
 # Fabrics and all use (including distribution) is subject to the conditions of
@@ -6,7 +6,7 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-COMPS := vfstream unit-test example doc
+COMPS := vfstream vftasks unit-test example doc
 TESTS := unit-test example
 TAR_BASENAME := vfstream
 RELEASE_COMPS := lib include
@@ -17,11 +17,12 @@ DEPLOY_FILES := \
 	INSTALL.txt \
 	doc \
 	vfstream \
+	vftasks \
 	example \
 	Makefile \
 	unit-test \
 	scripts
-	
+
 .PHONY: default all install test release deploy clean clean_all $(COMPS)
 
 default all: $(COMPS)
@@ -31,6 +32,7 @@ $(COMPS):
 
 install:
 	$(MAKE) -C vfstream $@
+	$(MAKE) -C vftasks $@
 
 test:
 	@for d in $(TESTS); do \
