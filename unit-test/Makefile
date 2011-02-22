@@ -10,8 +10,8 @@ COMPDIR = .
 VFROOT := $(shell cd .. && pwd)
 include $(VFROOT)/scripts/Make.defs
 
-CPPFLAGS := -O3 -pthread -I$(VFSTREAM_INCDIR)
-LDFLAGS := -L$(VFSTREAM_LIBDIR) 
+CPPFLAGS := -O3 -pthread -I$(VFSTREAM_INCDIR) -I$(VFTASKS_INCDIR)
+LDFLAGS := -L$(VFSTREAM_LIBDIR) -L$(VFTASKS_LIBDIR)
 
 RESULT := unit_test
 
@@ -23,7 +23,7 @@ OBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o, $(SRC))
 default all: $(RESULT)
 
 $(RESULT): $(OBJ)
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) $^ -lvfstream -lcppunit -o $@
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) $^ -lvfstream -lvftasks -lcppunit -o $@
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CXX) $(CPPFLAGS) -c $< -o $@
