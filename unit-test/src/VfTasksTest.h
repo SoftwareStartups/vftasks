@@ -19,11 +19,9 @@ extern "C"
 class VfTasksTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(VfTasksTest);
-  CPPUNIT_TEST(testExecution);
   CPPUNIT_TEST_SUITE_END();  // VfTasksTest
 
 public:
-  void testExecution();
 
 private:
   vftasks_pool_t *pool;  // pointer to a worker-thread pool
