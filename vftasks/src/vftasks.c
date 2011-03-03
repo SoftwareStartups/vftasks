@@ -22,7 +22,12 @@
  * ***************************************************************************/
 
 /* forward declaration */
-typedef struct vftasks_worker_s vftasks_worker_t;
+
+/* vftasks_worker_t is volatile because associated variables can
+   be modified from multiple threads. The non-volatile version of
+   the structure is provided to keep pthread and libc library functions happy */
+typedef volatile struct vftasks_worker_s vftasks_worker_t;
+typedef struct vftasks_worker_s vftasks_nv_worker_t;
 
 /** zero or more workers in the pool
  */
@@ -113,6 +118,8 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
  */
   __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker, pthread_key_t key)
 {
+  int rc;
+
   /* allocate a handle to a POSIX thread */
   worker->thread = (pthread_t *)malloc(sizeof(pthread_t));
   if (worker->thread == NULL)
@@ -133,7 +140,11 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
   /* activate the worker and have it running on a freshly forked thread */
   worker->is_active = 1;
-  if (pthread_create(worker->thread, NULL, vftasks_worker_loop, worker) != 0)
+  rc = pthread_create(worker->thread,
+                      NULL,
+                      vftasks_worker_loop,
+                      (vftasks_nv_worker_t *) worker);
+  if (rc != 0)
   {
     free(worker->chunk);
     free(worker->thread);
@@ -190,7 +201,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
       {
         vftasks_finalize_worker(worker_);
       }
-      free(chunk->base);
+      free((vftasks_nv_worker_t *)chunk->base);
       free(chunk);
       return NULL;
     }
@@ -212,7 +223,7 @@ vftasks_destroy_workers(vftasks_chunk_t *chunk)
   }
 
   /* deallocate the workers */
-  free(chunk->base);
+  free((vftasks_nv_worker_t *)chunk->base);
 
   /* deallocate the chunk */
   free(chunk);
