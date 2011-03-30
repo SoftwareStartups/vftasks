@@ -9,8 +9,9 @@
 
 #include "vftasks.h"
 
-#include <stdlib.h>   /* for malloc, free */
-#include <pthread.h>  /* POSIX Threads API */
+#include <stdlib.h>     /* for malloc, free */
+#include <semaphore.h>  /* semaphores */
+#include <pthread.h>    /* POSIX Threads API */
 
 /* not all compilers recognize __inline__ */
 #ifndef __GNUC__
@@ -23,9 +24,10 @@
 
 /* forward declaration */
 
-/* vftasks_worker_t is volatile because associated variables can
-   be modified from multiple threads. The non-volatile version of
-   the structure is provided to keep pthread and libc library functions happy */
+/* vftasks_worker_t is volatile because associated variables can be modified from
+   multiple threads; the nonvolatile version of the structure is provided to keep
+   pthread and libc library functions happy
+ */
 typedef volatile struct vftasks_worker_s vftasks_worker_t;
 typedef struct vftasks_worker_s vftasks_nv_worker_t;
 
@@ -60,6 +62,17 @@ struct vftasks_worker_s
 struct vftasks_pool_s
 {
   pthread_key_t key;  /* TLS-key for the pool */
+};
+
+/** 2D-synchronization manager
+ */
+struct vftasks_2d_mgr_s
+{
+  int dim_x;    /* iteration-space size along x-dimension */
+  int dim_y;    /* iteration-space size along y-dimension */
+  int dist_x;   /* critical distance along x-dimension */
+  int dist_y;   /* critical distance along y-dimension */
+  sem_t *sems;  /* pointer to an array of dim_x semaphores */
 };
 
 /* ***************************************************************************
@@ -207,6 +220,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
     }
   }
 
+  /* return the chunk */
   return chunk;
 }
 
@@ -225,7 +239,7 @@ vftasks_destroy_workers(vftasks_chunk_t *chunk)
   /* deallocate the workers */
   free((vftasks_nv_worker_t *)chunk->base);
 
-  /* deallocate the chunk */
+  /* deallocate the chunk pointer */
   free(chunk);
 }
 
@@ -373,3 +387,65 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   /* return 0 to indicate success */
   return 0;
 }
+
+/* ***************************************************************************
+ * Two-dimensional synchronization between tasks
+ * ***************************************************************************/
+
+/** create a 2D-synchronization manager
+ */
+vftasks_2d_mgr_t *vftasks_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
+{
+  vftasks_2d_mgr_t *mgr;  /* pointer to the manager */
+  int x;                  /* index */
+
+  /* allocate a manager */
+  mgr = (vftasks_2d_mgr_t *)malloc(sizeof(vftasks_2d_mgr_t));
+  if (mgr == NULL) return NULL;
+
+  /* set the data for manager */
+  mgr->dim_x = dim_x;
+  mgr->dim_y = dim_y;
+  mgr->dist_x = dist_x;
+  mgr->dist_y = dist_y;
+
+  /* allocate the semaphores held by the manager */
+  mgr->sems = (sem_t *)malloc(dim_x * sizeof(sem_t));
+  if (mgr->sems == NULL)
+  {
+    free(mgr);
+    return NULL;
+  }
+
+  /* initialize the semaphores */
+  for (x = 0; x < dim_x; ++x)
+  {
+    sem_init(&mgr->sems[x], 0, 0);
+  }
+
+  /* return the pointer to the manager */
+  return mgr;  
+}
+
+/** destroy a 2D-synchronization manager */
+void vftasks_destroy_2d_mgr(vftasks_2d_mgr_t *mgr)
+{
+  int x;  /* index */
+
+  /* destroy the semaphores held by the manager */
+  for (x = 0; x < mgr->dim_x; ++x)
+  {
+    sem_destroy(&mgr->sems[x]);
+  }
+
+  /* deallocate the semaphores */
+  free(mgr->sems);
+
+  /* deallocate the manager */
+  free(mgr);
+}
+
+/* TODO: implement 
+     int vftasks_sigal_2d(vftasks_2d_mgr_t *mgr, int x, int y);
+     int vftasks_wait_2d(vftasks_2d_mgr_t *mgr, int x, int y);
+ */
