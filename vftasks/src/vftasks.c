@@ -427,7 +427,8 @@ vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist
   return mgr;  
 }
 
-/** destroy a 2D-synchronization manager */
+/** destroy a 2D-synchronization manager
+ */
 void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
 {
   int x;  /* index */
@@ -445,7 +446,34 @@ void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
   free(mgr);
 }
 
-/* TODO: implement 
-     int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
-     int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
+/** signal end of inner iteration
  */
+int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
+{
+  /* check whether it is necessary to signal to another outer iteration */
+  if (x >= -mgr->dist_x && x < mgr->dim_x - mgr->dist_x &&
+      y >= -mgr->dist_y && y < mgr->dim_y - mgr->dist_y)
+  {
+    /* signal through the current outer iteration's semaphore; on failure, return 1 */
+    if(sem_post(&mgr->sems[x])) return 1;
+  }
+
+  /* return 0 to indicate success */
+  return 0;
+}
+
+/** synchronize at start of inner iteration
+ */
+int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y)
+{
+  /* check whether it is necessary to wait for another outer iteration */
+  if (x >= mgr->dist_x && x < mgr->dim_x + mgr->dist_x &&
+      y >= mgr->dist_y && y < mgr->dim_y + mgr->dist_y)
+  {
+    /* wait through the other iteration's semaphore; on failure, return 1 */
+    if (sem_wait(&mgr->sems[x - mgr->dist_x])) return 1;
+  }
+
+  /* return 0 to indicate success */
+  return 0;
+}
