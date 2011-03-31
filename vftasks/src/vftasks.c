@@ -64,17 +64,6 @@ struct vftasks_pool_s
   pthread_key_t key;  /* TLS-key for the pool */
 };
 
-/** 2D-synchronization manager
- */
-struct vftasks_2d_mgr_s
-{
-  int dim_x;    /* iteration-space size along x-dimension */
-  int dim_y;    /* iteration-space size along y-dimension */
-  int dist_x;   /* critical distance along x-dimension */
-  int dist_y;   /* critical distance along y-dimension */
-  sem_t *sems;  /* pointer to an array of dim_x semaphores */
-};
-
 /* ***************************************************************************
  * Workers
  * ***************************************************************************/
@@ -392,15 +381,26 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
  * Two-dimensional synchronization between tasks
  * ***************************************************************************/
 
+/** 2D-synchronization manager
+ */
+struct vfsync_2d_mgr_s
+{
+  int dim_x;    /* iteration-space size along x-dimension */
+  int dim_y;    /* iteration-space size along y-dimension */
+  int dist_x;   /* critical distance along x-dimension */
+  int dist_y;   /* critical distance along y-dimension */
+  sem_t *sems;  /* pointer to an array of dim_x semaphores */
+};
+
 /** create a 2D-synchronization manager
  */
-vftasks_2d_mgr_t *vftasks_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
+vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
 {
-  vftasks_2d_mgr_t *mgr;  /* pointer to the manager */
+  vfsync_2d_mgr_t *mgr;  /* pointer to the manager */
   int x;                  /* index */
 
   /* allocate a manager */
-  mgr = (vftasks_2d_mgr_t *)malloc(sizeof(vftasks_2d_mgr_t));
+  mgr = (vfsync_2d_mgr_t *)malloc(sizeof(vfsync_2d_mgr_t));
   if (mgr == NULL) return NULL;
 
   /* set the data for manager */
@@ -428,7 +428,7 @@ vftasks_2d_mgr_t *vftasks_create_2d_mgr(int dim_x, int dim_y, int dist_x, int di
 }
 
 /** destroy a 2D-synchronization manager */
-void vftasks_destroy_2d_mgr(vftasks_2d_mgr_t *mgr)
+void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
 {
   int x;  /* index */
 
@@ -446,6 +446,6 @@ void vftasks_destroy_2d_mgr(vftasks_2d_mgr_t *mgr)
 }
 
 /* TODO: implement 
-     int vftasks_sigal_2d(vftasks_2d_mgr_t *mgr, int x, int y);
-     int vftasks_wait_2d(vftasks_2d_mgr_t *mgr, int x, int y);
+     int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
+     int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
  */

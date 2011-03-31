@@ -20,11 +20,6 @@
  */
 typedef struct vftasks_pool_s vftasks_pool_t;
 
-/** A handle that is to be used to manage two-dimensional synchronization between
- *  concurrent tasks.
- */
-typedef struct vftasks_2d_mgr_s vftasks_2d_mgr_t;
-
 /** Represents a task that is to be executed in the worker-thread pool.
  */
 typedef void *(vftasks_task_t)(void *);
@@ -91,6 +86,11 @@ int vftasks_get(vftasks_pool_t *pool, void **result);
  * Two-dimensional synchronization between tasks
  * ***************************************************************************/
 
+/** A handle that is to be used to manage two-dimensional synchronization between
+ *  concurrent tasks.
+ */
+typedef struct vfsync_2d_mgr_s vfsync_2d_mgr_t;
+
 /** Creates a handle for managing two-dimensional synchronization between concurrent
  *  tasks.
  *
@@ -107,14 +107,14 @@ int vftasks_get(vftasks_pool_t *pool, void **result);
  *    On success, a pointer to the handle.
  *    On failure, NULL.
  */
-vftasks_2d_mgr_t *vftasks_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y);
+vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y);
 
 /** Destroys a given handle for managing two-dimension synchronization between
  *  concurrent tasks.
  *
  *  @mgr  A pointer to the handle.
  */
-void vftasks_destroy_2d_mgr(vftasks_2d_mgr_t *mgr);
+void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr);
 
 /** Signals the completion of an inner iteration through a handle for managing
  *  two-dimensional synchronization between concurrent task.
@@ -129,7 +129,7 @@ void vftasks_destroy_2d_mgr(vftasks_2d_mgr_t *mgr);
  *    On success, 0.
  *    On failure, a nonzero value.
  */
-int vftasks_sigal_2d(vftasks_2d_mgr_t *mgr, int x, int y);
+int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
 
 /** Synchronizes a task at the start of an inner iteration with the tasks it is
  *  depending on.
@@ -140,6 +140,6 @@ int vftasks_sigal_2d(vftasks_2d_mgr_t *mgr, int x, int y);
  *  @param y    The iteration's second-dimension index into the joint iteration space of
  *              the concurrent tasks for the iteration.
  */
-int vftasks_wait_2d(vftasks_2d_mgr_t *mgr, int x, int y);
+int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
 
 #endif /* __VFTASKS_H */
