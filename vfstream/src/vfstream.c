@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 Vector Fabrics B.V. All rights reserved.
+/* Copyright (c) 2010-2011 Vector Fabrics B.V. All rights reserved.
  *
  * This file contains proprietary and confidential information of Vector
  * Fabrics and all use (including distribution) is subject to the conditions of
@@ -49,7 +49,14 @@
  */
 #include "vfstream.h"
 
-#include <stdlib.h>   /* for abort  */
+/* FIXME: aborting on failure currently invalides a lot of unit tests;
+   we should run the unit tests on a version of the library that is compiled with the
+   VFSTREAM_ABORT_ON_FAILURE symbol undefined
+ */
+#undef VFSTREAM_ABORT_ON_FAILURE
+
+#include <stdlib.h>   /* for malloc, free, and abort  */
+#include <stdio.h>    /* for printing to stderr */
 #include <string.h>   /* for memcpy */
 
 
@@ -143,6 +150,20 @@ struct vfstream_rport_s
   vfstream_chan_t *chan;                /** points to channel                   */
 };
 
+/* ***************************************************************************
+ * Aborting on failure
+ * ***************************************************************************/
+
+/** abort
+ */
+void vfstream_abort(char *msg)
+{
+#ifdef VFSTREAM_ABORT_ON_FAILURE
+  fprintf(stderr, "Failure: %s\n", msg);
+  abort();
+#endif
+}
+
 
 /* ***************************************************************************
  * Creation and destruction of channels and ports
@@ -178,8 +199,17 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   vfstream_chan_t *chan;        /* pointer to the channel        */
 
   /* check #tokens and token size */
-  if (num_tokens <= 0) return NULL;
-  if (token_size <= 0) return NULL;
+  if (num_tokens <= 0)
+  {
+    vfstream_abort("vfstream_create_chan");
+    return NULL;
+  }
+
+  if (token_size <= 0)
+  {
+    vfstream_abort("vfstream_create_chan");
+    return NULL;
+  }
 
   /* if necessary, round up the token size to the next power of 2 */
   if ((token_size & token_size - 1) != 0)
@@ -202,11 +232,19 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
 
   /* allocate raw buffer */
   raw_buf = buf_space->malloc(chan_size * (token_size + overflow_size));
-  if (raw_buf == NULL) return NULL;
+  if (raw_buf == NULL)
+  {
+    vfstream_abort("vfstream_create_chan");
+    return NULL;
+  }
 
   /* allocate token buffer */
   token_buf = ctl_space->malloc(chan_size * sizeof(vfstream_token_t));
-  if (token_buf == NULL) return NULL;
+  if (token_buf == NULL)
+  {
+    vfstream_abort("vfstream_create_chan");
+    return NULL;
+  }
 
   /* fill token buffer */
   {
@@ -229,6 +267,7 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   {
     buf_space->free(raw_buf);
     ctl_space->free(token_buf);
+    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
@@ -265,11 +304,19 @@ vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
   vfstream_wport_t *wport;  /* pointer to the port */
 
   /* check if channel already has a write port */
-  if (chan->wport != NULL) return NULL;
+  if (chan->wport != NULL)
+  {
+    vfstream_abort("vfstream_create_write_port");
+    return NULL;
+  }
 
   /* allocate port */
   wport = port_space->malloc(sizeof(vfstream_wport_t));
-  if (wport == NULL) return NULL;
+  if (wport == NULL)
+  {
+    vfstream_abort("vfstream_create_write_port");
+    return NULL;
+  }
 
   /* initialize port */
   memcpy(&wport->cached_state, &chan->state, sizeof(vfstream_state_t));
@@ -294,11 +341,19 @@ vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
   vfstream_rport_t *rport;  /* pointer to the port */
 
   /* check if channel already has a read port */
-  if (chan->rport != NULL) return NULL;
+  if (chan->rport != NULL)
+  {
+    vfstream_abort("vfstream_crete_read_port");
+    return NULL;
+  }
 
   /* allocate the port */
   rport = port_space->malloc(sizeof(vfstream_rport_t));
-  if (rport == NULL) return NULL;
+  if (rport == NULL)
+  {
+    vfstream_abort("vfstream_create_read_port");
+    return NULL;
+  }
 
   /* initialize port */
   memcpy(&rport->cached_state, &chan->state, sizeof(vfstream_state_t));
@@ -357,7 +412,6 @@ void vfstream_destroy_read_port(vfstream_rport_t *rport,
 
 #endif /* VFPOLLING */
 
-
 /* ***************************************************************************
  * Channel hooks
  * ***************************************************************************/
@@ -386,7 +440,7 @@ void vfstream_install_chan_hooks(vfstream_chan_t *chan,
 int vfstream_set_min_room(vfstream_chan_t *chan, int min_room)
 {
   vfstream_param_t *param;  /* pointer to the channel parameters */
-  int chan_size;          /* channel size (== #tokens + 1)     */
+  int chan_size;            /* channel size (== #tokens + 1)     */
 
   /* retrieve parameter pointer */
   param = &chan->param;
@@ -396,7 +450,11 @@ int vfstream_set_min_room(vfstream_chan_t *chan, int min_room)
 
   /* check if the new mark is within bounds;
      otherwise, do not update the mark */
-  if (min_room <= 0 || min_room >= chan_size) return param->min_room;
+  if (min_room <= 0 || min_room >= chan_size)
+  {
+    vfstream_abort("vfstream_set_min_room");
+    return param->min_room;
+  }
 
   /* update the mark */
   param->min_room = min_room;
@@ -432,7 +490,11 @@ int vfstream_set_min_data(vfstream_chan_t *chan, int min_data)
 
   /* check if the new mark is within bounds;
      otherwise, do not update the mark */
-  if (min_data <= 0 || min_data >= chan_size) return param->min_data;
+  if (min_data <= 0 || min_data >= chan_size)
+  {
+    vfstream_abort("vfstream_set_min_data");
+    return param->min_data;
+  }
 
   /* update the mark */
   param->min_data = min_data;
@@ -453,7 +515,6 @@ int vfstream_get_min_data(vfstream_chan_t *chan)
   return chan->param.min_data;
 }
 
-
 /* ***************************************************************************
  * Application-specific data
  * ***************************************************************************/
@@ -473,7 +534,6 @@ void *vfstream_get_chan_info(vfstream_chan_t *chan)
   /* return info */
   return chan->info;
 }
-
 
 /* ***************************************************************************
  * Channel queries
@@ -506,7 +566,6 @@ size_t vfstream_get_token_size(vfstream_chan_t *chan)
   return chan->param.base->token_size;
 }
 
-
 /* ***************************************************************************
  * Port queries
  * ***************************************************************************/
@@ -526,7 +585,6 @@ vfstream_chan_t *vfstream_chan_of_rport(vfstream_rport_t *rport)
   /* return channel */
   return rport->chan;
 }
-
 
 /* ***************************************************************************
  * Channel-state queries
@@ -576,7 +634,6 @@ bool_t vfstream_data_available(vfstream_rport_t *rport)
   return true;
 }
 
-
 /* ***************************************************************************
  * Producer operations
  * ***************************************************************************/
@@ -600,7 +657,11 @@ __inline__ vfstream_token_t *vfstream_acquire_room_nb(vfstream_wport_t *wport)
   {
     /* update cache and recheck with updated cache */
     wport->cached_state.head = wport->chan->state.head;
-    if (new_room == wport->cached_state.head) return NULL;
+    if (new_room == wport->cached_state.head)
+    {
+      vfstream_abort("vfstream_acquire_room_nb");
+      return NULL;
+    }
   }
 
   /* buffer still has room; update room pointer */
@@ -712,7 +773,6 @@ __inline__ void vfstream_release_data(vfstream_wport_t *wport,
 #endif
 }
 
-
 /* ***************************************************************************
  * Producer operations
  * ***************************************************************************/
@@ -732,7 +792,11 @@ __inline__ vfstream_token_t *vfstream_acquire_data_nb(vfstream_rport_t *rport)
   {
     /* update cache and recheck with updated cache */
     rport->cached_state.tail = rport->chan->state.tail;
-    if (data == rport->cached_state.tail) return NULL;
+    if (data == rport->cached_state.tail)
+    {
+      vfstream_abort("vfstream_acquire_data_nb");
+      return NULL;
+    }
   }
 
   /* determine new data pointer; if it is out of bounds, wrap it */
@@ -846,7 +910,6 @@ __inline__ void vfstream_release_room(vfstream_rport_t *rport,
 #endif
 }
 
-
 /* ***************************************************************************
  * Shared-memory-mode operations
  * ***************************************************************************/
@@ -857,7 +920,6 @@ void *vfstream_get_memaddr(vfstream_token_t *token)
 {
   return token->token_base;
 }
-
 
 /* ***************************************************************************
  * Low-level operations
@@ -979,7 +1041,6 @@ void *vfstream_get_ptr(vfstream_token_t *token, size_t offset)
   VFSTREAM_GET(void *, token, offset);
 }
 
-
 /* ***************************************************************************
  * Flushing
  * ***************************************************************************/
@@ -1031,7 +1092,6 @@ void vfstream_flush_room(vfstream_rport_t *rport)
   }
 #endif /* VFPOLLING */
 }
-
 
 /* ***************************************************************************
  * High-level, Kahn-style operations

@@ -9,7 +9,8 @@
 
 #include "vftasks.h"
 
-#include <stdlib.h>     /* for malloc, free */
+#include <stdlib.h>     /* for malloc, free, and abort */
+#include <stdio.h>      /* for printing to stderr */
 #include <semaphore.h>  /* semaphores */
 #include <pthread.h>    /* POSIX Threads API */
 
@@ -63,6 +64,20 @@ struct vftasks_pool_s
 {
   pthread_key_t key;  /* TLS-key for the pool */
 };
+
+/* ***************************************************************************
+ * Aborting on failure
+ * ***************************************************************************/
+
+/** abort
+ */
+void vftasks_abort(char *msg)
+{
+#ifdef VFTASKS_ABORT_ON_FAILURE
+  fprintf(stderr, "Failure: %s\n", msg);
+  abort();
+#endif
+}
 
 /* ***************************************************************************
  * Workers
@@ -126,6 +141,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   worker->thread = (pthread_t *)malloc(sizeof(pthread_t));
   if (worker->thread == NULL)
   {
+    vftasks_abort("vftasks_create_pool");
     return 1;
   }
 
@@ -150,6 +166,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   {
     free(worker->chunk);
     free(worker->thread);
+    vftasks_abort("vftasks_create_pool");
     return 1;
   }
 
@@ -188,6 +205,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   if (chunk->base == NULL)
   {
     free(chunk);
+    vftasks_abort("vftasks_create_pool");
     return NULL;
   }
   chunk->limit = chunk->base + num_workers;
@@ -205,6 +223,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
       }
       free((vftasks_nv_worker_t *)chunk->base);
       free(chunk);
+      vftasks_abort("vftasks_create_pool");
       return NULL;
     }
   }
@@ -243,12 +262,17 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
 
   /* allocate the pool */
   pool = (vftasks_pool_t *)malloc(sizeof(vftasks_pool_t));
-  if (pool == NULL) return NULL;
+  if (pool == NULL)
+  {
+    vftasks_abort("vftasks_create_pool");
+    return NULL;
+  }
 
   /* create a TLS-key for the pool pointer */
   if (pthread_key_create(&key, NULL) != 0)
   {
     free(pool);
+    vftasks_abort("vftasks_create_pool");
     return NULL;
   }
 
@@ -261,6 +285,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   {
     pthread_key_delete(key);
     free(pool);
+    vftasks_abort("vftasks_create_pool");
     return NULL;    
   }
 
@@ -308,11 +333,16 @@ int vftasks_submit(vftasks_pool_t *pool,
 
   /* retrieve the chuck of subsidiary workers */
   chunk = vftasks_get_chunk(pool);
-  if (chunk == NULL) return 1;
+  if (chunk == NULL)
+  {
+    vftasks_abort("vftasks_submit");
+    return 1;
+  }
 
   /* check that there are enough workers available to execute the task */
   if (chunk->tail + num_workers >= chunk->limit)
   {
+    vftasks_abort("vftasks_submit");
     return 1;
   }
 
@@ -346,10 +376,18 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
 
   /* retrieve the chuck of subsidiary workers */
   chunk = vftasks_get_chunk(pool);
-  if (chunk == NULL) return 1;
+  if (chunk == NULL)
+  {
+    vftasks_abort("vftasks_get");   
+    return 1;
+  }
 
   /* check that there is a task being executed */
-  if (chunk->head >= chunk->tail) return 1;
+  if (chunk->head >= chunk->tail)
+  {
+    vftasks_abort("vftasks_get");
+    return 1;
+  }
 
   /* retrieve the worker that is executing the oldest task */
   worker = chunk->head;
@@ -392,16 +430,30 @@ struct vfsync_2d_mgr_s
   sem_t *sems;  /* pointer to an array of dim_x semaphores */
 };
 
+/** abort
+ */
+void vfsync_abort(char *msg)
+{
+#ifdef VFSYNC_ABORT_ON_FAILURE
+  fprintf(stderr, "Failure: %s\n", msg);
+  abort();
+#endif
+}
+
 /** create a 2D-synchronization manager
  */
 vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
 {
   vfsync_2d_mgr_t *mgr;  /* pointer to the manager */
-  int x;                  /* index */
+  int x;                 /* index */
 
   /* allocate a manager */
   mgr = (vfsync_2d_mgr_t *)malloc(sizeof(vfsync_2d_mgr_t));
-  if (mgr == NULL) return NULL;
+  if (mgr == NULL)
+  {
+    vfsync_abort("vfsync_create_2d_mgr");
+    return NULL;
+  }
 
   /* set the data for manager */
   mgr->dim_x = dim_x;
@@ -414,6 +466,7 @@ vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist
   if (mgr->sems == NULL)
   {
     free(mgr);
+    vfsync_abort("vfsync_create_2d_mgr");
     return NULL;
   }
 
@@ -455,7 +508,11 @@ int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
       y >= -mgr->dist_y && y < mgr->dim_y - mgr->dist_y)
   {
     /* signal through the current outer iteration's semaphore; on failure, return 1 */
-    if(sem_post(&mgr->sems[x])) return 1;
+    if(sem_post(&mgr->sems[x]))
+    {
+      vfsync_abort("vfsync_signal_2d");
+      return 1;
+    }
   }
 
   /* return 0 to indicate success */
@@ -471,7 +528,11 @@ int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y)
       y >= mgr->dist_y && y < mgr->dim_y + mgr->dist_y)
   {
     /* wait through the other iteration's semaphore; on failure, return 1 */
-    if (sem_wait(&mgr->sems[x - mgr->dist_x])) return 1;
+    if (sem_wait(&mgr->sems[x - mgr->dist_x]))
+    {
+      vfsync_abort("vfsync_wait_2d");
+      return 1;
+    }
   }
 
   /* return 0 to indicate success */

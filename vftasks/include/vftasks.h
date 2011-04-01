@@ -10,7 +10,18 @@
 #ifndef __VFTASKS_H
 #define __VFTASKS_H
 
+/** \mainpage vfTasks API documentation
+ *
+ * \section sec_error_handling Error handling
+ *  By default, members of the vfTasks API terminate the calling program when a failure
+ *  is encountered.
+ *  This behaviour can be overriden by compiling vfTasks with the
+ *  VFTASKS_ABORT_ON_FAILURE and VFSYNC_ABORT_ON_FAILURE preprocessor symbols undefined.
+ */
+
 #include <stddef.h>    /* for NULL */
+
+#define VFTASKS_ABORT_ON_FAILURE
 
 /* ***************************************************************************
  * Types
@@ -35,6 +46,10 @@ typedef void *(vftasks_task_t)(void *);
  *  @return
  *    On success, a pointer to the pool.
  *    On failure, NULL.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 vftasks_pool_t *vftasks_create_pool(int num_workers);
 
@@ -61,6 +76,10 @@ void vftasks_destroy_pool(vftasks_pool_t *pool);
  *  @return
  *    On success, 0
  *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 int vftasks_submit(vftasks_pool_t *pool,
                    vftasks_task_t *task,
@@ -79,6 +98,10 @@ int vftasks_submit(vftasks_pool_t *pool,
  *  @return
  *    On success, 0.
  *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 int vftasks_get(vftasks_pool_t *pool, void **result);
 
@@ -106,6 +129,10 @@ typedef struct vfsync_2d_mgr_s vfsync_2d_mgr_t;
  *  @return
  *    On success, a pointer to the handle.
  *    On failure, NULL.
+ *
+ *  NOTE: If vfTasks was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y);
 
@@ -128,6 +155,10 @@ void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr);
  *  @return
  *    On success, 0.
  *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
 
@@ -139,6 +170,14 @@ int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
  *              the concurrent tasks for the iteration.
  *  @param y    The iteration's second-dimension index into the joint iteration space of
  *              the concurrent tasks for the iteration.
+ *
+ *  @return
+ *    On success, 0.
+ *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
  */
 int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
 

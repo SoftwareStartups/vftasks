@@ -17,28 +17,28 @@
 #define EQ_FLOAT(X, Y)   EQ(float, X, Y)
 #define EQ_DOUBLE(X, Y)  EQ(double, X, Y)
 
-#define CREATE_CHAN(NUM_TOKENS, TOKEN_SIZE)                           \
+#define CREATE_CHAN(NUM_TOKENS, TOKEN_SIZE)                             \
   this->chan = vfstream_create_chan(NUM_TOKENS,                         \
-                                  TOKEN_SIZE,                         \
-                                  this->mem_mgr,                      \
-                                  this->mem_mgr);                     \
+                                  TOKEN_SIZE,                           \
+                                  this->mem_mgr,                        \
+                                  this->mem_mgr);                       \
   CPPUNIT_ASSERT(this->chan != NULL);
-#define WITH_WPORT                                                    \
+#define WITH_WPORT                                                      \
   this->wport = vfstream_create_write_port(this->chan, this->mem_mgr);  \
   CPPUNIT_ASSERT(this->wport != NULL);
-#define WITH_RPORT                                                    \
+#define WITH_RPORT                                                      \
   this->rport = vfstream_create_read_port(this->chan, this->mem_mgr);   \
   CPPUNIT_ASSERT(this->rport != NULL);
-#define EXEC_ON_WORKER_THREAD(FUNC, ARG)                              \
-  {                                                                   \
-    pthread_t worker;                                                 \
-    void *result;                                                     \
-    CPPUNIT_ASSERT(pthread_create(&worker, NULL, FUNC, ARG) == 0);    \
-    CPPUNIT_ASSERT(pthread_join(worker, &result) == 0);               \
+#define EXEC_ON_WORKER_THREAD(FUNC, ARG)                                \
+  {                                                                     \
+    pthread_t worker;                                                   \
+    void *result;                                                       \
+    CPPUNIT_ASSERT(pthread_create(&worker, NULL, FUNC, ARG) == 0);      \
+    CPPUNIT_ASSERT(pthread_join(worker, &result) == 0);                 \
   }
-#define WPORT_FROM_VOID(WPORT, VOID)                                  \
+#define WPORT_FROM_VOID(WPORT, VOID)                                    \
   vfstream_wport_t *WPORT = (vfstream_wport_t *)VOID;
-#define RPORT_FROM_VOID(RPORT, VOID)                                  \
+#define RPORT_FROM_VOID(RPORT, VOID)                                    \
   vfstream_rport_t *RPORT = (vfstream_rport_t *)VOID;
 
 
