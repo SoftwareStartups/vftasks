@@ -11,7 +11,6 @@
 
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */
-#include <semaphore.h>  /* semaphores */
 #include <pthread.h>    /* POSIX Threads API */
 
 /* not all compilers recognize __inline__ */
@@ -100,7 +99,7 @@ void *vftasks_worker_loop(void *args)
   {
     /* spin until a task is assigned to the worker */
     while (worker->is_active && worker->task == NULL)
-    {      
+    {
     }
 
     /* check whether the worker is still active */
@@ -286,7 +285,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
     pthread_key_delete(key);
     free(pool);
     vftasks_abort("vftasks_create_pool");
-    return NULL;    
+    return NULL;
   }
 
   /* store the workers in TLS */
@@ -307,7 +306,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
 void vftasks_destroy_pool(vftasks_pool_t *pool)
 {
   /* retrieve the chunk that contains the workers in the pool and destroy the workers */
-  vftasks_destroy_workers(vftasks_get_chunk(pool));  
+  vftasks_destroy_workers(vftasks_get_chunk(pool));
 
   /* delete the TLS-key for the pool */
   pthread_key_delete(pool->key);
@@ -378,7 +377,7 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
-    vftasks_abort("vftasks_get");   
+    vftasks_abort("vftasks_get");
     return 1;
   }
 
@@ -409,130 +408,6 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   {
     chunk->head = chunk->base;
     chunk->tail = chunk->base;
-  }
-
-  /* return 0 to indicate success */
-  return 0;
-}
-
-/* ***************************************************************************
- * Two-dimensional synchronization between tasks
- * ***************************************************************************/
-
-/** 2D-synchronization manager
- */
-struct vfsync_2d_mgr_s
-{
-  int dim_x;    /* iteration-space size along x-dimension */
-  int dim_y;    /* iteration-space size along y-dimension */
-  int dist_x;   /* critical distance along x-dimension */
-  int dist_y;   /* critical distance along y-dimension */
-  sem_t *sems;  /* pointer to an array of dim_x semaphores */
-};
-
-/** abort
- */
-void vfsync_abort(char *msg)
-{
-#ifdef VFSYNC_ABORT_ON_FAILURE
-  fprintf(stderr, "Failure: %s\n", msg);
-  abort();
-#endif
-}
-
-/** create a 2D-synchronization manager
- */
-vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
-{
-  vfsync_2d_mgr_t *mgr;  /* pointer to the manager */
-  int x;                 /* index */
-
-  /* allocate a manager */
-  mgr = (vfsync_2d_mgr_t *)malloc(sizeof(vfsync_2d_mgr_t));
-  if (mgr == NULL)
-  {
-    vfsync_abort("vfsync_create_2d_mgr");
-    return NULL;
-  }
-
-  /* set the data for manager */
-  mgr->dim_x = dim_x;
-  mgr->dim_y = dim_y;
-  mgr->dist_x = dist_x;
-  mgr->dist_y = dist_y;
-
-  /* allocate the semaphores held by the manager */
-  mgr->sems = (sem_t *)malloc(dim_x * sizeof(sem_t));
-  if (mgr->sems == NULL)
-  {
-    free(mgr);
-    vfsync_abort("vfsync_create_2d_mgr");
-    return NULL;
-  }
-
-  /* initialize the semaphores */
-  for (x = 0; x < dim_x; ++x)
-  {
-    sem_init(&mgr->sems[x], 0, 0);
-  }
-
-  /* return the pointer to the manager */
-  return mgr;  
-}
-
-/** destroy a 2D-synchronization manager
- */
-void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
-{
-  int x;  /* index */
-
-  /* destroy the semaphores held by the manager */
-  for (x = 0; x < mgr->dim_x; ++x)
-  {
-    sem_destroy(&mgr->sems[x]);
-  }
-
-  /* deallocate the semaphores */
-  free(mgr->sems);
-
-  /* deallocate the manager */
-  free(mgr);
-}
-
-/** signal end of inner iteration
- */
-int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
-{
-  /* check whether it is necessary to signal to another outer iteration */
-  if (x >= -mgr->dist_x && x < mgr->dim_x - mgr->dist_x &&
-      y >= -mgr->dist_y && y < mgr->dim_y - mgr->dist_y)
-  {
-    /* signal through the current outer iteration's semaphore; on failure, return 1 */
-    if(sem_post(&mgr->sems[x]))
-    {
-      vfsync_abort("vfsync_signal_2d");
-      return 1;
-    }
-  }
-
-  /* return 0 to indicate success */
-  return 0;
-}
-
-/** synchronize at start of inner iteration
- */
-int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y)
-{
-  /* check whether it is necessary to wait for another outer iteration */
-  if (x >= mgr->dist_x && x < mgr->dim_x + mgr->dist_x &&
-      y >= mgr->dist_y && y < mgr->dim_y + mgr->dist_y)
-  {
-    /* wait through the other iteration's semaphore; on failure, return 1 */
-    if (sem_wait(&mgr->sems[x - mgr->dist_x]))
-    {
-      vfsync_abort("vfsync_wait_2d");
-      return 1;
-    }
   }
 
   /* return 0 to indicate success */

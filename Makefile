@@ -6,7 +6,7 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-COMPS := vfstream vftasks unit-test example doc
+COMPS := vfstream vftasks vfsync unit-test example doc
 TESTS := unit-test example
 TAR_BASENAME := vfstream
 RELEASE_COMPS := lib include
@@ -18,6 +18,7 @@ DEPLOY_FILES := \
 	doc \
 	vfstream \
 	vftasks \
+	vfsync \
 	example \
 	Makefile \
 	unit-test \
@@ -33,6 +34,7 @@ $(COMPS):
 install:
 	$(MAKE) -C vfstream $@
 	$(MAKE) -C vftasks $@
+	$(MAKE) -C vfsync $@
 
 test:
 	@for d in $(TESTS); do \
