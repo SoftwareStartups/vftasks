@@ -47,13 +47,8 @@
  *  It is possible to acquire multiple room tokens before releasing new data.
  *  Calling vfstream_release_data releases the oldest acquired room token.
  */
-#include "vfstream.h"
 
-/* FIXME: aborting on failure currently invalides a lot of unit tests;
-   we should run the unit tests on a version of the library that is compiled with the
-   VFSTREAM_ABORT_ON_FAILURE symbol undefined
- */
-#undef VFSTREAM_ABORT_ON_FAILURE
+#include "vfstream.h"
 
 #include <stdlib.h>   /* for malloc, free, and abort  */
 #include <stdio.h>    /* for printing to stderr */
@@ -150,20 +145,6 @@ struct vfstream_rport_s
   vfstream_chan_t *chan;                /** points to channel                   */
 };
 
-/* ***************************************************************************
- * Aborting on failure
- * ***************************************************************************/
-
-/** abort
- */
-void vfstream_abort(char *msg)
-{
-#ifdef VFSTREAM_ABORT_ON_FAILURE
-  fprintf(stderr, "Failure: %s\n", msg);
-  abort();
-#endif
-}
-
 
 /* ***************************************************************************
  * Creation and destruction of channels and ports
@@ -201,13 +182,11 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   /* check #tokens and token size */
   if (num_tokens <= 0)
   {
-    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
   if (token_size <= 0)
   {
-    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
@@ -234,7 +213,6 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   raw_buf = buf_space->malloc(chan_size * (token_size + overflow_size));
   if (raw_buf == NULL)
   {
-    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
@@ -242,7 +220,6 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   token_buf = ctl_space->malloc(chan_size * sizeof(vfstream_token_t));
   if (token_buf == NULL)
   {
-    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
@@ -267,7 +244,6 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
   {
     buf_space->free(raw_buf);
     ctl_space->free(token_buf);
-    vfstream_abort("vfstream_create_chan");
     return NULL;
   }
 
@@ -306,7 +282,6 @@ vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
   /* check if channel already has a write port */
   if (chan->wport != NULL)
   {
-    vfstream_abort("vfstream_create_write_port");
     return NULL;
   }
 
@@ -314,7 +289,6 @@ vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
   wport = port_space->malloc(sizeof(vfstream_wport_t));
   if (wport == NULL)
   {
-    vfstream_abort("vfstream_create_write_port");
     return NULL;
   }
 
@@ -343,7 +317,6 @@ vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
   /* check if channel already has a read port */
   if (chan->rport != NULL)
   {
-    vfstream_abort("vfstream_crete_read_port");
     return NULL;
   }
 
@@ -351,7 +324,6 @@ vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
   rport = port_space->malloc(sizeof(vfstream_rport_t));
   if (rport == NULL)
   {
-    vfstream_abort("vfstream_create_read_port");
     return NULL;
   }
 
@@ -452,7 +424,6 @@ int vfstream_set_min_room(vfstream_chan_t *chan, int min_room)
      otherwise, do not update the mark */
   if (min_room <= 0 || min_room >= chan_size)
   {
-    vfstream_abort("vfstream_set_min_room");
     return param->min_room;
   }
 
@@ -492,7 +463,6 @@ int vfstream_set_min_data(vfstream_chan_t *chan, int min_data)
      otherwise, do not update the mark */
   if (min_data <= 0 || min_data >= chan_size)
   {
-    vfstream_abort("vfstream_set_min_data");
     return param->min_data;
   }
 
@@ -659,7 +629,6 @@ __inline__ vfstream_token_t *vfstream_acquire_room_nb(vfstream_wport_t *wport)
     wport->cached_state.head = wport->chan->state.head;
     if (new_room == wport->cached_state.head)
     {
-      vfstream_abort("vfstream_acquire_room_nb");
       return NULL;
     }
   }
@@ -794,7 +763,6 @@ __inline__ vfstream_token_t *vfstream_acquire_data_nb(vfstream_rport_t *rport)
     rport->cached_state.tail = rport->chan->state.tail;
     if (data == rport->cached_state.tail)
     {
-      vfstream_abort("vfstream_acquire_data_nb");
       return NULL;
     }
   }

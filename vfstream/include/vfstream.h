@@ -143,12 +143,6 @@
  *  on what areas of memory are used for allocation.
  *  This could be useful, for example, when interfacing with hardware devices.
  *
- * \section sec_error_handling Error handling
- *  By default, members of the vfStream API terminate the calling program when a failure
- *  is encountered.
- *  This behavior can be overridden by compiling vfStream with the
- *  VFSTREAM_ABORT_ON_FAILURE preprocessor symbol undefined.
- *
  */
 
 #include <stdint.h>    /* for int8_t, int16_t, ... */
@@ -164,8 +158,6 @@ typedef int bool_t;
 #define false 0
 #define true 1
 #endif
-
-#define VFSTREAM_ABORT_ON_FAILURE  /* by default, functions abort on failure */
 
 /* ***************************************************************************
  * Types
@@ -248,10 +240,6 @@ vfstream_malloc_t;
  *  @return
  *     On success, a pointer to the channel.
  *     On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 vfstream_chan_t *vfstream_create_chan(int num_tokens,
                                       size_t token_size,
@@ -269,10 +257,6 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
  *  @return
  *     On success, a pointer to the port.
  *     On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
                                          vfstream_malloc_t *port_space);
@@ -288,10 +272,6 @@ vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
  *  @return
  *      On success, a pointer to the port.
  *      On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
                                         vfstream_malloc_t *port_space);
@@ -373,10 +353,6 @@ void vfstream_install_chan_hooks(vfstream_chan_t *chan,
  *  @return
  *    On success, the new low-water mark.
  *    On failure, the old low-water mark.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 int vfstream_set_min_room(vfstream_chan_t *chan, int min_room);
 
@@ -409,10 +385,6 @@ int vfstream_get_min_room(vfstream_chan_t *chan);
  *  @return
  *    On success, the new high-water mark.
  *    On failure, the old high-water mark.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 int vfstream_set_min_data(vfstream_chan_t *chan, int min_data);
 
@@ -569,10 +541,6 @@ vfstream_token_t *vfstream_acquire_room(vfstream_wport_t *wport);
  *  @return
  *    On success, a pointer to the token.
  *    On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 vfstream_token_t *vfstream_acquire_room_nb(vfstream_wport_t *wport);
 
@@ -620,10 +588,6 @@ vfstream_token_t *vfstream_acquire_data(vfstream_rport_t *rport);
  *  @return
  *    On success, a pointer to the token.
  *    On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 vfstream_token_t *vfstream_acquire_data_nb(vfstream_rport_t *rport);
 
@@ -654,10 +618,6 @@ void vfstream_release_room(vfstream_rport_t *rport, vfstream_token_t *token);
  *  @return
  *    On success, the pointer.
  *    On failure, NULL.
- *
- *  NOTE: If vfStream was compiled with the VFSTREAM_ABORT_ON_FAILURE preprocessor symbol
- *  defined (which is the default), the function does not return on failure and instead
- *  terminates the calling program.
  */
 void *vfstream_get_memaddr(vfstream_token_t *token);
 
