@@ -6,6 +6,8 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
+#include(CPack)
+
 cmake_minimum_required(VERSION 2.6)
 
 project(vftasks)
@@ -20,3 +22,8 @@ enable_testing()
 
 # installation
 set(CMAKE_INSTALL_PREFIX $ENV{VFSTREAMINSTALL})
+
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_PACKAGE_FILE_NAME "vfstream")
+include(CPack)
+
