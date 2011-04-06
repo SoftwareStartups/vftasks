@@ -24,7 +24,7 @@
 
 /** 2D-synchronization manager
  */
-struct vfsync_2d_mgr_s
+struct vftasks_2d_sync_mgr_s
 {
   int dim_x;    /* iteration-space size along x-dimension */
   int dim_y;    /* iteration-space size along y-dimension */
@@ -35,9 +35,9 @@ struct vfsync_2d_mgr_s
 
 /** abort
  */
-void vfsync_abort(char *msg)
+void vftasks_abort(char *msg)
 {
-#ifdef VFSYNC_ABORT_ON_FAILURE
+#ifdef VFTASKS_ABORT_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -45,16 +45,19 @@ void vfsync_abort(char *msg)
 
 /** create a 2D-synchronization manager
  */
-vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y)
+vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
+                                                  int dim_y,
+                                                  int dist_x,
+                                                  int dist_y)
 {
-  vfsync_2d_mgr_t *mgr;  /* pointer to the manager */
+  vftasks_2d_sync_mgr_t *mgr;  /* pointer to the manager */
   int x;                 /* index */
 
   /* allocate a manager */
-  mgr = (vfsync_2d_mgr_t *)malloc(sizeof(vfsync_2d_mgr_t));
+  mgr = (vftasks_2d_sync_mgr_t *)malloc(sizeof(vftasks_2d_sync_mgr_t));
   if (mgr == NULL)
   {
-    vfsync_abort("vfsync_create_2d_mgr");
+    vftasks_abort("vftasks_create_2d_mgr");
     return NULL;
   }
 
@@ -69,7 +72,7 @@ vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist
   if (mgr->sems == NULL)
   {
     free(mgr);
-    vfsync_abort("vfsync_create_2d_mgr");
+    vftasks_abort("vftasks_create_2d_mgr");
     return NULL;
   }
 
@@ -85,7 +88,7 @@ vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist
 
 /** destroy a 2D-synchronization manager
  */
-void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
+void vftasks_destroy_2d_sync_mgr(vftasks_2d_sync_mgr_t *mgr)
 {
   int x;  /* index */
 
@@ -104,7 +107,7 @@ void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr)
 
 /** signal end of inner iteration
  */
-int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
+int vftasks_signal_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
 {
   /* check whether it is necessary to signal to another outer iteration */
   if (x >= -mgr->dist_x && x < mgr->dim_x - mgr->dist_x &&
@@ -113,7 +116,7 @@ int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
     /* signal through the current outer iteration's semaphore; on failure, return 1 */
     if(sem_post(&mgr->sems[x]))
     {
-      vfsync_abort("vfsync_signal_2d");
+      vftasks_abort("vftasks_signal_2d");
       return 1;
     }
   }
@@ -124,7 +127,7 @@ int vfsync_signal_2d(vfsync_2d_mgr_t *mgr, int x, int y)
 
 /** synchronize at start of inner iteration
  */
-int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y)
+int vftasks_wait_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
 {
   /* check whether it is necessary to wait for another outer iteration */
   if (x >= mgr->dist_x && x < mgr->dim_x + mgr->dist_x &&
@@ -133,7 +136,7 @@ int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y)
     /* wait through the other iteration's semaphore; on failure, return 1 */
     if (sem_wait(&mgr->sems[x - mgr->dist_x]))
     {
-      vfsync_abort("vfsync_wait_2d");
+      vftasks_abort("vftasks_wait_2d");
       return 1;
     }
   }

@@ -236,7 +236,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** destroy a chunk of workers
  */
-vftasks_destroy_workers(vftasks_chunk_t *chunk)
+void vftasks_destroy_workers(vftasks_chunk_t *chunk)
 {
   vftasks_worker_t *worker;  /* pointer to a worker in the chunk */
 

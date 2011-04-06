@@ -213,16 +213,16 @@ public:
   void testPassingHighWaterMark();
 
 private:
-  vfstream_malloc_t *mem_mgr;  // pointer to a memory manager
-  vfstream_chan_t *chan;       // pointer to a channel
-  vfstream_wport_t *wport;     // pointer to a write port
-  vfstream_rport_t *rport;     // pointer to a read port
-  pthread_t *writer;         // pointer to writer thread
-  pthread_t *reader;         // pointer to reader thread
-  int writerSuspendCount;    // writer-suspend count
-  int writerResumeCount;     // writer-resume count
-  int readerSuspendCount;    // reader-suspend count
-  int readerResumeCount;     // reader-resume count
+  vftasks_malloc_t *mem_mgr;  // pointer to a memory manager
+  vftasks_chan_t *chan;       // pointer to a channel
+  vftasks_wport_t *wport;     // pointer to a write port
+  vftasks_rport_t *rport;     // pointer to a read port
+  pthread_t *writer;          // pointer to writer thread
+  pthread_t *reader;          // pointer to reader thread
+  int writerSuspendCount;     // writer-suspend count
+  int writerResumeCount;      // writer-resume count
+  int readerSuspendCount;     // reader-suspend count
+  int readerResumeCount;      // reader-resume count
 };
 
 #endif  // VFSTREAMTEST_H

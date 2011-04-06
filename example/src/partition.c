@@ -7,8 +7,7 @@
  * Fabrics.
  *
  *
- * Example: straightforward functional partioning implemented with a FIFO channel from
- * vfStream.
+ * Example: straightforward functional partioning implemented with a FIFO channel.
  */
 #include <pthread.h>
 #include <stdio.h>
@@ -81,16 +80,16 @@ int sum(int *data)
 void *writer(void *arg)
 {
   unsigned int i;         /* index      */
-  vfstream_wport_t *wport;  /* write port */
+  vftasks_wport_t *wport;  /* write port */
 
   /* retrieve write port */
-  wport = (vfstream_wport_t *)arg;
+  wport = (vftasks_wport_t *)arg;
 
   /* write data */
-  for (i = 0; i < PROBLEM_SIZE; ++i) vfstream_write_int32(wport, succ(writer_data[i]));
+  for (i = 0; i < PROBLEM_SIZE; ++i) vftasks_write_int32(wport, succ(writer_data[i]));
 
   /* flush */
-  vfstream_flush_data(wport);
+  vftasks_flush_data(wport);
 
   /* exit */
   return NULL;
@@ -98,24 +97,24 @@ void *writer(void *arg)
 
 /* called when the writer is prompted to be suspended
  */
-void suspend_writer(vfstream_wport_t *wport)
+void suspend_writer(vftasks_wport_t *wport)
 {
   info_t *info;  /* application data */
 
   /* retrieve application data */
-  info = vfstream_get_chan_info(vfstream_chan_of_wport(wport));
+  info = vftasks_get_chan_info(vftasks_chan_of_wport(wport));
 
   /* lock */
   pthread_mutex_lock(&info->mutex);
 
   /* check whether suspend condition still applies */
-  if (!vfstream_room_available(wport))
+  if (!vftasks_room_available(wport))
     /* condition still applies; suspend */
     if (pthread_cond_wait(&info->cond, &info->mutex))
     {
       fprintf(stderr, "writer: waiting for resume condition failed\n");
       pthread_mutex_unlock(&info->mutex);
-      vfstream_flush_data(wport);
+      vftasks_flush_data(wport);
       pthread_exit(NULL);
     }
 
@@ -125,12 +124,12 @@ void suspend_writer(vfstream_wport_t *wport)
 
 /* called when the writer is prompted to resume
  */
-void resume_writer(vfstream_wport_t *wport)
+void resume_writer(vftasks_wport_t *wport)
 {
   info_t *info;  /* application data */
 
   /* retrieve application data */
-  info = vfstream_get_chan_info(vfstream_chan_of_wport(wport));
+  info = vftasks_get_chan_info(vftasks_chan_of_wport(wport));
 
   /* lock */
   pthread_mutex_lock(&info->mutex);
@@ -140,7 +139,7 @@ void resume_writer(vfstream_wport_t *wport)
   {
     fprintf(stderr, "writer: broadcasting resume condition failed\n");
     pthread_mutex_unlock(&info->mutex);
-    vfstream_flush_data(wport);
+    vftasks_flush_data(wport);
     pthread_exit(NULL);
   }
 
@@ -153,16 +152,16 @@ void resume_writer(vfstream_wport_t *wport)
 void *reader(void *arg)
 {
   unsigned int i;         /* index      */
-  vfstream_rport_t *rport;  /* read port  */
+  vftasks_rport_t *rport;  /* read port  */
 
   /* retrieve read port */
-  rport = (vfstream_rport_t *)arg;
+  rport = (vftasks_rport_t *)arg;
 
   /* read data */
-  for (i = 0; i < PROBLEM_SIZE; ++i) reader_data[i] = dbl(vfstream_read_int32(rport));
+  for (i = 0; i < PROBLEM_SIZE; ++i) reader_data[i] = dbl(vftasks_read_int32(rport));
 
   /* flush */
-  vfstream_flush_room(rport);
+  vftasks_flush_room(rport);
 
   /* exit */
   return NULL;
@@ -170,24 +169,24 @@ void *reader(void *arg)
 
 /* called when the reader is prompted to be suspended
  */
-void suspend_reader(vfstream_rport_t *rport)
+void suspend_reader(vftasks_rport_t *rport)
 {
   info_t *info;  /* application data */
 
   /* retrieve application data */
-  info = vfstream_get_chan_info(vfstream_chan_of_rport(rport));
+  info = vftasks_get_chan_info(vftasks_chan_of_rport(rport));
 
   /* lock */
   pthread_mutex_lock(&info->mutex);
 
   /* check whether suspend condition still applies */
-  if (!vfstream_data_available(rport))
+  if (!vftasks_data_available(rport))
     /* condition still applies; suspend */
     if (pthread_cond_wait(&info->cond, &info->mutex))
     {
       fprintf(stderr, "reader: waiting for resume condition failed\n");
       pthread_mutex_unlock(&info->mutex);
-      vfstream_flush_room(rport);
+      vftasks_flush_room(rport);
       pthread_exit(NULL);
     }
 
@@ -197,12 +196,12 @@ void suspend_reader(vfstream_rport_t *rport)
 
 /* called when the reader is prompted to resume
  */
-void resume_reader(vfstream_rport_t *rport)
+void resume_reader(vftasks_rport_t *rport)
 {
   info_t *info;  /* application data */
 
   /* retrieve application data */
-  info = vfstream_get_chan_info(vfstream_chan_of_rport(rport));
+  info = vftasks_get_chan_info(vftasks_chan_of_rport(rport));
 
   /* lock */
   pthread_mutex_lock(&info->mutex);
@@ -212,7 +211,7 @@ void resume_reader(vfstream_rport_t *rport)
   {
     fprintf(stderr, "reader: broadcasting resume condition failed\n");
     pthread_mutex_unlock(&info->mutex);
-    vfstream_flush_room(rport);
+    vftasks_flush_room(rport);
     pthread_exit(NULL);
   }
 
@@ -227,10 +226,10 @@ int main()
   int rc;                    /* return code         */
   unsigned int i;            /* index               */
   info_t info;               /* application data    */
-  vfstream_malloc_t mem_mgr;   /* memory manager      */
-  vfstream_chan_t *chan;       /* FIFO channel        */
-  vfstream_wport_t *wport;     /* write port          */
-  vfstream_rport_t *rport;     /* read port           */
+  vftasks_malloc_t mem_mgr;  /* memory manager      */
+  vftasks_chan_t *chan;      /* FIFO channel        */
+  vftasks_wport_t *wport;    /* write port          */
+  vftasks_rport_t *rport;    /* read port           */
   pthread_t writer_thread;   /* writer thread       */
   pthread_t reader_thread;   /* reader thread       */
   void *trv ;                /* thread return value */
@@ -244,7 +243,7 @@ int main()
   mem_mgr.free = free;
 
   /* create channel */
-  chan = vfstream_create_chan(FIFO_DEPTH, sizeof(int), &mem_mgr, &mem_mgr);
+  chan = vftasks_create_chan(FIFO_DEPTH, sizeof(int), &mem_mgr, &mem_mgr);
   if (chan == NULL)
   {
     fprintf(stderr, "channel creation failed\n");
@@ -252,43 +251,43 @@ int main()
   }
 
   /* create write port */
-  wport = vfstream_create_write_port(chan, &mem_mgr);
+  wport = vftasks_create_write_port(chan, &mem_mgr);
   if (wport == NULL)
   {
     fprintf(stderr, "write-port creation failed\n");
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
   /* create read port */
-  rport = vfstream_create_read_port(chan, &mem_mgr);
+  rport = vftasks_create_read_port(chan, &mem_mgr);
   if (rport == NULL)
   {
     fprintf(stderr, "read-port creation failed\n");
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
   /* install channel hooks */
-  vfstream_install_chan_hooks(chan,
-			    suspend_writer,
-			    resume_writer,
-			    suspend_reader,
-			    resume_reader);
+  vftasks_install_chan_hooks(chan,
+                             suspend_writer,
+                             resume_writer,
+                             suspend_reader,
+                             resume_reader);
 
   /* set low- and high-water marks */
-  vfstream_set_min_room(chan, LOW_WATER_MARK);
-  vfstream_set_min_data(chan, HIGH_WATER_MARK);
+  vftasks_set_min_room(chan, LOW_WATER_MARK);
+  vftasks_set_min_data(chan, HIGH_WATER_MARK);
 
   /* initialize mutex */
   rc = pthread_mutex_init(&info.mutex, NULL);
   if (rc)
   {
     fprintf(stderr, "mutex initialization failed\n");
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
@@ -298,14 +297,14 @@ int main()
   {
     fprintf(stderr, "condition-variable initialization failed\n");
     pthread_mutex_destroy(&info.mutex);
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
-  } 
+  }
 
   /* associate application data with channel */
-  vfstream_set_chan_info(chan, &info);
+  vftasks_set_chan_info(chan, &info);
 
   /* create and start writer thread */
   rc = pthread_create(&writer_thread, NULL, writer, wport);
@@ -314,9 +313,9 @@ int main()
     fprintf(stderr, "writer-thread creation failed\n");
     pthread_cond_destroy(&info.cond);
     pthread_mutex_destroy(&info.mutex);
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
@@ -328,9 +327,9 @@ int main()
     pthread_cancel(writer_thread);
     pthread_cond_destroy(&info.cond);
     pthread_mutex_destroy(&info.mutex);
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
@@ -343,9 +342,9 @@ int main()
     pthread_cancel(reader_thread);
     pthread_cond_destroy(&info.cond);
     pthread_mutex_destroy(&info.mutex);
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
@@ -357,18 +356,18 @@ int main()
     pthread_cancel(reader_thread);
     pthread_cond_destroy(&info.cond);
     pthread_mutex_destroy(&info.mutex);
-    vfstream_destroy_write_port(wport, &mem_mgr);
-    vfstream_destroy_read_port(rport, &mem_mgr);
-    vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+    vftasks_destroy_write_port(wport, &mem_mgr);
+    vftasks_destroy_read_port(rport, &mem_mgr);
+    vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
     return 1;
   }
 
   /* destroy condition variable, mutex, ports, and channel */
   pthread_cond_destroy(&info.cond);
   pthread_mutex_destroy(&info.mutex);
-  vfstream_destroy_write_port(wport, &mem_mgr);
-  vfstream_destroy_read_port(rport, &mem_mgr);
-  vfstream_destroy_chan(chan, &mem_mgr, &mem_mgr);
+  vftasks_destroy_write_port(wport, &mem_mgr);
+  vftasks_destroy_read_port(rport, &mem_mgr);
+  vftasks_destroy_chan(chan, &mem_mgr, &mem_mgr);
 
   /* compute the result */
   result = sum(reader_data);

@@ -259,7 +259,7 @@ int vftasks_get(vftasks_pool_t *pool, void **result);
 /** A handle that is to be used to manage two-dimensional synchronization between
  *  concurrent tasks.
  */
-typedef struct vfsync_2d_mgr_s vfsync_2d_mgr_t;
+typedef struct vftasks_2d_sync_mgr_s vftasks_2d_sync_mgr_t;
 
 /** Creates a handle for managing two-dimensional synchronization between concurrent
  *  tasks.
@@ -277,18 +277,21 @@ typedef struct vfsync_2d_mgr_s vfsync_2d_mgr_t;
  *    On success, a pointer to the handle.
  *    On failure, NULL.
  *
- *  NOTE: If vfSync was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-vfsync_2d_mgr_t *vfsync_create_2d_mgr(int dim_x, int dim_y, int dist_x, int dist_y);
+vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
+                                                  int dim_y,
+                                                  int dist_x,
+                                                  int dist_y);
 
 /** Destroys a given handle for managing two-dimension synchronization between
  *  concurrent tasks.
  *
  *  @mgr  A pointer to the handle.
  */
-void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr);
+void vftasks_destroy_2d_sync_mgr(vftasks_2d_sync_mgr_t *mgr);
 
 /** Signals the completion of an inner iteration through a handle for managing
  *  two-dimensional synchronization between concurrent task.
@@ -303,11 +306,11 @@ void vfsync_destroy_2d_mgr(vfsync_2d_mgr_t *mgr);
  *    On success, 0.
  *    On failure, a nonzero value.
  *
- *  NOTE: If vfSync was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
+int vftasks_signal_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y);
 
 /** Synchronizes a task at the start of an inner iteration with the tasks it is
  *  depending on.
@@ -322,11 +325,11 @@ int vfsync_sigal_2d(vfsync_2d_mgr_t *mgr, int x, int y);
  *    On success, 0.
  *    On failure, a nonzero value.
  *
- *  NOTE: If vfSync was compiled with the VFSYNC_ABORT_ON_FAILURE preprocessor symbol
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
+int vftasks_wait_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y);
 
 
 /* ***************************************************************************
@@ -337,22 +340,22 @@ int vfsync_wait_2d(vfsync_2d_mgr_t *mgr, int x, int y);
  * Types
  * ***************************************************************************/
 
-/** Represents a FIFO channel. 
+/** Represents a FIFO channel.
  */
-typedef struct vfstream_chan_s vfstream_chan_t;
+typedef struct vftasks_chan_s vftasks_chan_t;
 
 /** Represents a write port on a FIFO channel.
  */
-typedef struct vfstream_wport_s vfstream_wport_t;
+typedef struct vftasks_wport_s vftasks_wport_t;
 
 /** Represents a read port on a FIFO channel.
  */
-typedef struct vfstream_rport_s vfstream_rport_t;
+typedef struct vftasks_rport_s vftasks_rport_t;
 
 /**
  * Represents a FIFO token.
  */
-typedef struct vfstream_token_s vfstream_token_t;
+typedef struct vftasks_token_s vftasks_token_t;
 
 /** Called when a writer that is connected to a FIFO channel might want to be
  *  suspended or resumed.
@@ -360,7 +363,7 @@ typedef struct vfstream_token_s vfstream_token_t;
  *  @param  wport  A pointer to the write port through which the reader is connected
  *                 to the channel.
  */
-typedef void (*vfstream_writer_hook_t)(vfstream_wport_t *wport);
+typedef void (*vftasks_writer_hook_t)(vftasks_wport_t *wport);
 
 /** Called when a reader that is connected to a FIFO channel might want to be
  *  suspended or resumed.
@@ -368,11 +371,11 @@ typedef void (*vfstream_writer_hook_t)(vfstream_wport_t *wport);
  *  @param  rport  A pointer to the read port through which the reader is connected
  *                 to the channel.
  */
-typedef void (*vfstream_reader_hook_t)(vfstream_rport_t *rport);
+typedef void (*vftasks_reader_hook_t)(vftasks_rport_t *rport);
 
 /** Provides a memory-management implementation.
  */
-typedef struct vfstream_malloc_s
+typedef struct vftasks_malloc_s
 {
   /** Allocates a memory block of a specified size.
    *
@@ -390,7 +393,7 @@ typedef struct vfstream_malloc_s
    */
   void (*free)(void *ptr);
 }
-vfstream_malloc_t;
+vftasks_malloc_t;
 
 
 /* ***************************************************************************
@@ -415,10 +418,10 @@ vfstream_malloc_t;
  *     On success, a pointer to the channel.
  *     On failure, NULL.
  */
-vfstream_chan_t *vfstream_create_chan(int num_tokens,
-                                      size_t token_size,
-                                      vfstream_malloc_t *ctl_space,
-                                      vfstream_malloc_t *buf_space);
+vftasks_chan_t *vftasks_create_chan(int num_tokens,
+                                    size_t token_size,
+                                    vftasks_malloc_t *ctl_space,
+                                    vftasks_malloc_t *buf_space);
 
 /** Creates a write port and connects it to a given FIFO channel.
  *
@@ -432,8 +435,8 @@ vfstream_chan_t *vfstream_create_chan(int num_tokens,
  *     On success, a pointer to the port.
  *     On failure, NULL.
  */
-vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
-                                         vfstream_malloc_t *port_space);
+vftasks_wport_t *vftasks_create_write_port(vftasks_chan_t *chan,
+                                           vftasks_malloc_t *port_space);
 
 /** Creates a read port and connects it to a given FIFO channel.
  *
@@ -447,8 +450,8 @@ vfstream_wport_t *vfstream_create_write_port(vfstream_chan_t *chan,
  *      On success, a pointer to the port.
  *      On failure, NULL.
  */
-vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
-                                        vfstream_malloc_t *port_space);
+vftasks_rport_t *vftasks_create_read_port(vftasks_chan_t *chan,
+                                          vftasks_malloc_t *port_space);
 
 /** Destroys a given FIFO channel.
  *
@@ -460,9 +463,9 @@ vfstream_rport_t *vfstream_create_read_port(vfstream_chan_t *chan,
  *                     be used to deallocate the memory that was allocated for the
  *                     channel's FIFO buffer.
  */
-void vfstream_destroy_chan(vfstream_chan_t *chan,
-                         vfstream_malloc_t *ctl_space,
-                         vfstream_malloc_t *buf_space);
+void vftasks_destroy_chan(vftasks_chan_t *chan,
+                          vftasks_malloc_t *ctl_space,
+                          vftasks_malloc_t *buf_space);
 
 /** Destroys a given write port.
  *
@@ -471,8 +474,8 @@ void vfstream_destroy_chan(vfstream_chan_t *chan,
  *                      be used to deallocate the memory that was allocated for the
  *                      port.
  */
-void vfstream_destroy_write_port(vfstream_wport_t *wport,
-                               vfstream_malloc_t *port_space);
+void vftasks_destroy_write_port(vftasks_wport_t *wport,
+                               vftasks_malloc_t *port_space);
 
 /** Destroys a given read port.
  *
@@ -481,8 +484,8 @@ void vfstream_destroy_write_port(vfstream_wport_t *wport,
  *                      be used to deallocate the memory that was allocated for the
  *                      port.
  */
-void vfstream_destroy_read_port(vfstream_rport_t *rport,
-                              vfstream_malloc_t *port_space);
+void vftasks_destroy_read_port(vftasks_rport_t *rport,
+                               vftasks_malloc_t *port_space);
 
 
 /* ***************************************************************************
@@ -503,11 +506,11 @@ void vfstream_destroy_read_port(vfstream_rport_t *rport,
  *  @param  resume_reader   A pointer to the function that is to be called when a
  *                          reader connected to the channel might want to be resumed.
  */
-void vfstream_install_chan_hooks(vfstream_chan_t *chan,
-                               vfstream_writer_hook_t suspend_writer,
-                               vfstream_writer_hook_t resume_writer,
-                               vfstream_reader_hook_t suspend_reader,
-                               vfstream_reader_hook_t resume_reader);
+void vftasks_install_chan_hooks(vftasks_chan_t *chan,
+                                vftasks_writer_hook_t suspend_writer,
+                                vftasks_writer_hook_t resume_writer,
+                                vftasks_reader_hook_t suspend_reader,
+                                vftasks_reader_hook_t resume_reader);
 
 /* ***************************************************************************
  * Low- and high-water marks
@@ -519,7 +522,7 @@ void vfstream_install_chan_hooks(vfstream_chan_t *chan,
  *  channel to be prompted to resume their task.
  *  That is, if the number of tokens available for writing becomes equal to or
  *  greater than the low-water mark, writers are notified through a hook that
- *  was installed by vfstream_install_chan_hooks.
+ *  was installed by vftasks_install_chan_hooks.
  *
  *  @param  chan      A pointer to the channel.
  *  @param  min_room  The new low-water mark.
@@ -528,7 +531,7 @@ void vfstream_install_chan_hooks(vfstream_chan_t *chan,
  *    On success, the new low-water mark.
  *    On failure, the old low-water mark.
  */
-int vfstream_set_min_room(vfstream_chan_t *chan, int min_room);
+int vftasks_set_min_room(vftasks_chan_t *chan, int min_room);
 
 /** Retrieves the ``low-water mark'' for a given FIFO channel.
  *
@@ -536,14 +539,14 @@ int vfstream_set_min_room(vfstream_chan_t *chan, int min_room);
  *  channel to be prompted to resume their task.
  *  That is, if the number of tokens available for writing becomes equal to or
  *  greater than the low-water mark, writers are notified through a hook that
- *  was installed by vfstream_install_chan_hooks.
+ *  was installed by vftasks_install_chan_hooks.
  *
  *  @param  chan  A pointer to the channel.
- *   
+ *
  *  @return
  *    The low-water mark.
  */
-int vfstream_get_min_room(vfstream_chan_t *chan);
+int vftasks_get_min_room(vftasks_chan_t *chan);
 
 /** Sets the ``high-water mark'' for a given FIFO channel.
  *
@@ -551,16 +554,16 @@ int vfstream_get_min_room(vfstream_chan_t *chan);
  *  the channel to be prompted to resume their task.
  *  That is, if the number of tokens available for reading becomes equal to or
  *  greater than the high-water mark, readers are notified through a hook that
- *  was installed by vfstream_install_chan_hooks.
+ *  was installed by vftasks_install_chan_hooks.
  *
  *  @param  chan      A pointer to the channel.
- *  @param  min_data  The new high-water mark. 
- *   
+ *  @param  min_data  The new high-water mark.
+ *
  *  @return
  *    On success, the new high-water mark.
  *    On failure, the old high-water mark.
  */
-int vfstream_set_min_data(vfstream_chan_t *chan, int min_data);
+int vftasks_set_min_data(vftasks_chan_t *chan, int min_data);
 
 /** Retrieves the ``high-water mark'' for a given FIFO channel.
  *
@@ -568,14 +571,14 @@ int vfstream_set_min_data(vfstream_chan_t *chan, int min_data);
  *  the channel to be prompted to resume their task.
  *  That is, if the number of tokens available for reading becomes equal to or
  *  greater than the high-water mark, readers are notified through a hook that
- *  was installed by vfstream_install_chan_hooks.
+ *  was installed by vftasks_install_chan_hooks.
  *
  *  @param  chan  A pointer to the channel.
- *   
+ *
  *  @return
  *    The high-water mark.
  */
-int vfstream_get_min_data(vfstream_chan_t *chan);
+int vftasks_get_min_data(vftasks_chan_t *chan);
 
 
 /* ***************************************************************************
@@ -587,7 +590,7 @@ int vfstream_get_min_data(vfstream_chan_t *chan);
  *  @param  chan  A pointer to the channel.
  *  @param  info  A pointer to the application-specific data.
  */
-void vfstream_set_chan_info(vfstream_chan_t *chan, void *info);
+void vftasks_set_chan_info(vftasks_chan_t *chan, void *info);
 
 /** Retrieves application-specific data from a given FIFO channel.
  *
@@ -596,7 +599,7 @@ void vfstream_set_chan_info(vfstream_chan_t *chan, void *info);
  *  @return
  *    A pointer to the application-specific data.
  */
-void *vfstream_get_chan_info(vfstream_chan_t *chan);
+void *vftasks_get_chan_info(vftasks_chan_t *chan);
 
 
 /* ***************************************************************************
@@ -612,7 +615,7 @@ void *vfstream_get_chan_info(vfstream_chan_t *chan);
  *    If the channel supports shared-memory operations, true.
  *    If the channel does not support shared-memory operations, false.
  */
-bool_t vfstream_shmem_supported(vfstream_chan_t *chan);
+bool_t vftasks_shmem_supported(vftasks_chan_t *chan);
 
 /** Retrieves the number of tokens held by a given FIFO channel.
  *
@@ -621,7 +624,7 @@ bool_t vfstream_shmem_supported(vfstream_chan_t *chan);
  *  @return
  *    The number of tokens.
  */
-int vfstream_get_num_tokens(vfstream_chan_t *chan);
+int vftasks_get_num_tokens(vftasks_chan_t *chan);
 
 /** Retrieves the size of the tokens held by a given FIFO channel.
  *
@@ -630,7 +633,7 @@ int vfstream_get_num_tokens(vfstream_chan_t *chan);
  *  @return
  *    The token size.
  */
-size_t vfstream_get_token_size(vfstream_chan_t *chan);
+size_t vftasks_get_token_size(vftasks_chan_t *chan);
 
 
 /* ***************************************************************************
@@ -644,7 +647,7 @@ size_t vfstream_get_token_size(vfstream_chan_t *chan);
  *  @return
  *    A pointer to the channel.
  */
-vfstream_chan_t *vfstream_chan_of_wport(vfstream_wport_t *wport);
+vftasks_chan_t *vftasks_chan_of_wport(vftasks_wport_t *wport);
 
 /** Retrieves the FIFO channel that is connected to a given read port.
  *
@@ -653,7 +656,7 @@ vfstream_chan_t *vfstream_chan_of_wport(vfstream_wport_t *wport);
  *  @return
  *    A pointer to the channel.
  */
-vfstream_chan_t *vfstream_chan_of_rport(vfstream_rport_t *rport);
+vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport);
 
 
 /* ***************************************************************************
@@ -669,7 +672,7 @@ vfstream_chan_t *vfstream_chan_of_rport(vfstream_rport_t *rport);
  *    If the channel has tokens available, true.
  *    If the channel does not have tokens available, false. *
  */
-bool_t vfstream_room_available(vfstream_wport_t *wport);
+bool_t vftasks_room_available(vftasks_wport_t *wport);
 
 /** Retrieves whether or not a connected FIFO channel has any tokens available 
  *  for acquisition through a given read port.
@@ -680,7 +683,7 @@ bool_t vfstream_room_available(vfstream_wport_t *wport);
  *    If the channel has tokens available, true.
  *    If the channel does not have tokens available, false.
  */
-bool_t vfstream_data_available(vfstream_rport_t *rport);
+bool_t vftasks_data_available(vftasks_rport_t *rport);
 
 
 /* ***************************************************************************
@@ -692,18 +695,18 @@ bool_t vfstream_data_available(vfstream_rport_t *rport);
  *  Blocks until the channel has tokens available for acquisition through the
  *  port.
  *  If there are no tokens available, writers are prompted to be suspended
- *  through a hook that that was installed by vfstream_install_chan_hooks.
+ *  through a hook that that was installed by vftasks_install_chan_hooks.
  *  Before actually being suspended, writers should make sure that the
  *  suspension condition still applies as concurrent consumer operations may
- *  have made tokens available. 
- * 
+ *  have made tokens available.
+ *
  *
  *  @param  wport  A pointer to the port.
  *
  *  @return
  *    A pointer to the token.
  */
-vfstream_token_t *vfstream_acquire_room(vfstream_wport_t *wport);
+vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport);
 
 /** Attempts to acquire a token from a FIFO channel through a given write port.
  *
@@ -716,19 +719,19 @@ vfstream_token_t *vfstream_acquire_room(vfstream_wport_t *wport);
  *    On success, a pointer to the token.
  *    On failure, NULL.
  */
-vfstream_token_t *vfstream_acquire_room_nb(vfstream_wport_t *wport);
+vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport);
 
 /** Releases a token that was previously acquired through a given write port.
  *
  *  If the number of available tokens for acquisition through a read port that
  *  is connected to the channel rises above the ``high-water mark'', readers are
  *  prompted to resume through a hook that was installed by
- *  vfstream_install_chan_hooks.
+ *  vftasks_install_chan_hooks.
  *
  *  @param  wport  A pointer to the port.
  *  @param  token  A pointer to the token.
  */
-void vfstream_release_data(vfstream_wport_t *wport, vfstream_token_t *token);
+void vftasks_release_data(vftasks_wport_t *wport, vftasks_token_t *token);
 
 
 /* ***************************************************************************
@@ -740,17 +743,17 @@ void vfstream_release_data(vfstream_wport_t *wport, vfstream_token_t *token);
  *  Blocks until the channel has tokens available for acquisition through the
  *  port.
  *  If there are no tokens available, readers are prompted to be suspended
- *  through a hook that that was installed by vfstream_install_chan_hooks.
+ *  through a hook that that was installed by vftasks_install_chan_hooks.
  *  Before actually being suspended, writers should make sure that the
  *  suspension condition still applies as concurrent producer operations may
- *  have made tokens available. 
+ *  have made tokens available.
  *
  *  @param  rport  A pointer to the port.
  *
  *  @return
  *    A pointer to the token.
  */
-vfstream_token_t *vfstream_acquire_data(vfstream_rport_t *rport);
+vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport);
 
 /** Attempts to acquire a token from a FIFO channel through a given read port.
  *
@@ -763,19 +766,19 @@ vfstream_token_t *vfstream_acquire_data(vfstream_rport_t *rport);
  *    On success, a pointer to the token.
  *    On failure, NULL.
  */
-vfstream_token_t *vfstream_acquire_data_nb(vfstream_rport_t *rport);
+vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport);
 
 /** Releases a token that was previously acquired through a given write port.
  *
  *  If the number of available tokens for acquisition through a write port that
  *  is connected to the channel rises above the ``low-water mark'', writers are
  *  prompted to resume through a hook that was installed by
- *  vfstream_install_chan_hooks.
+ *  vftasks_install_chan_hooks.
  *
  *  @param  rport  A pointer to the port.
  *  @param  token  A pointer to the token.
  */
-void vfstream_release_room(vfstream_rport_t *rport, vfstream_token_t *token);
+void vftasks_release_room(vftasks_rport_t *rport, vftasks_token_t *token);
 
 
 /* ***************************************************************************
@@ -793,7 +796,7 @@ void vfstream_release_room(vfstream_rport_t *rport, vfstream_token_t *token);
  *    On success, the pointer.
  *    On failure, NULL.
  */
-void *vfstream_get_memaddr(vfstream_token_t *token);
+void *vftasks_get_memaddr(vftasks_token_t *token);
 
 
 /* ***************************************************************************
@@ -811,7 +814,7 @@ void *vfstream_get_memaddr(vfstream_token_t *token);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_int8(vfstream_token_t* token, size_t offset, int8_t data);
+void vftasks_put_int8(vftasks_token_t* token, size_t offset, int8_t data);
 
 /** Stores a 16-bit integer value at a specified offset in the FIFO-channel
  * buffer range that is associated with a given token.
@@ -831,7 +834,7 @@ void vfstream_put_int8(vfstream_token_t* token, size_t offset, int8_t data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_int16(vfstream_token_t *token, size_t offset, int16_t data);
+void vftasks_put_int16(vftasks_token_t *token, size_t offset, int16_t data);
 
 /** Stores a 32-bit integer value at a specified offset in the FIFO-channel
  *  buffer range that is associated with a given token.
@@ -851,7 +854,7 @@ void vfstream_put_int16(vfstream_token_t *token, size_t offset, int16_t data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_int32(vfstream_token_t *token, size_t offset, int32_t data);
+void vftasks_put_int32(vftasks_token_t *token, size_t offset, int32_t data);
 
 /** Stores a 64-bit integer value at a specified offset in the FIFO-channel
  *  buffer range that is associated with a given token.
@@ -871,7 +874,7 @@ void vfstream_put_int32(vfstream_token_t *token, size_t offset, int32_t data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_int64(vfstream_token_t *token, size_t offset, int64_t data);
+void vftasks_put_int64(vftasks_token_t *token, size_t offset, int64_t data);
 
 /** Stores a single-precision floating-point value at a specified offset in the
  *  FIFO-channel buffer range that is associated with a given token.
@@ -891,7 +894,7 @@ void vfstream_put_int64(vfstream_token_t *token, size_t offset, int64_t data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_float(vfstream_token_t *token, size_t offset, float data);
+void vftasks_put_float(vftasks_token_t *token, size_t offset, float data);
 
 /** Stores a double-precision floating-point value at a specified offset in the
  *  FIFO-channel buffer range that is associated with a given token.
@@ -911,7 +914,7 @@ void vfstream_put_float(vfstream_token_t *token, size_t offset, float data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_double(vfstream_token_t *token, size_t offset, double data);
+void vftasks_put_double(vftasks_token_t *token, size_t offset, double data);
 
 /** Stores a pointer value at a specified offset in the FIFO-channel buffer
  *  range that is associated with a given token.
@@ -931,7 +934,7 @@ void vfstream_put_double(vfstream_token_t *token, size_t offset, double data);
  *  @param  offset  The offset.
  *  @param  data    The value.
  */
-void vfstream_put_ptr(vfstream_token_t *token, size_t offset, void *data);
+void vftasks_put_ptr(vftasks_token_t *token, size_t offset, void *data);
 
 /** Loads an 8-bit integer value from a specified offset in the FIFO-channel
  *  buffer that is associated with a given token.
@@ -946,7 +949,7 @@ void vfstream_put_ptr(vfstream_token_t *token, size_t offset, void *data);
  *  @return
  *    The value.
  */
-int8_t vfstream_get_int8(vfstream_token_t *token, size_t offset);
+int8_t vftasks_get_int8(vftasks_token_t *token, size_t offset);
 
 /** Loads a 16-bit integer value from a specified offset in the FIFO-channel
  *  buffer that is associated with a given token.
@@ -969,7 +972,7 @@ int8_t vfstream_get_int8(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-int16_t vfstream_get_int16(vfstream_token_t *token, size_t offset);
+int16_t vftasks_get_int16(vftasks_token_t *token, size_t offset);
 
 /** Loads a 32-bit integer value from a specified offset in the FIFO-channel
  *  buffer that is associated with a given token.
@@ -992,7 +995,7 @@ int16_t vfstream_get_int16(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-int32_t vfstream_get_int32(vfstream_token_t *token, size_t offset);
+int32_t vftasks_get_int32(vftasks_token_t *token, size_t offset);
 
 /** Loads a 64-bit integer value from a specified offset in the FIFO-channel
  *  buffer that is associated with a given token.
@@ -1015,7 +1018,7 @@ int32_t vfstream_get_int32(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-int64_t vfstream_get_int64(vfstream_token_t *token, size_t offset);
+int64_t vftasks_get_int64(vftasks_token_t *token, size_t offset);
 
 /** Loads a single-precision floating-point value from a specified offset in the
  *  FIFO-channel buffer that is associated with a given token.
@@ -1038,7 +1041,7 @@ int64_t vfstream_get_int64(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-float vfstream_get_float(vfstream_token_t *token, size_t offset);
+float vftasks_get_float(vftasks_token_t *token, size_t offset);
 
 /** Loads an double-precision floating-point value from a specified offset in
  *  the FIFO-channel buffer that is associated with a given token.
@@ -1061,7 +1064,7 @@ float vfstream_get_float(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-double vfstream_get_double(vfstream_token_t *token, size_t offset);
+double vftasks_get_double(vftasks_token_t *token, size_t offset);
 
 /** Loads a pointer value from a specified offset in the FIFO-channel buffer
  *  that is associated with a given token.
@@ -1084,7 +1087,7 @@ double vfstream_get_double(vfstream_token_t *token, size_t offset);
  *  @return
  *    The value.
  */
-void *vfstream_get_ptr(vfstream_token_t *token, size_t offset);
+void *vftasks_get_ptr(vftasks_token_t *token, size_t offset);
 
 
 /* ***************************************************************************
@@ -1095,25 +1098,25 @@ void *vfstream_get_ptr(vfstream_token_t *token, size_t offset);
  *  to resume, regardless of the ``high-water mark'' of the channel.
  *
  *  That is, readers are notified through a hook that was installed by
- *  vfstream_install_chan_hooks.
+ *  vftasks_install_chan_hooks.
  *  Typically called by a writer to signal that it has completed its task and
  *  that no more tokens should be expected to become available for reading.
  *
  *  @param  wport  A pointer to the write port.
  */
-void vfstream_flush_data(vfstream_wport_t *wport);
+void vftasks_flush_data(vftasks_wport_t *wport);
 
 /** Prompts writers of a FIFO channel that is connected with a given read port
  *  to resume, regardless of the ``low-water mark'' of the channel.
  *
  *  That is, writers are notified through a hook that was installed by
- *  vfstream_install_chan_hooks.
+ *  vftasks_install_chan_hooks.
  *  Typically called by a reader to signal that it has completed its task and
  *  that no more tokens should be expected to become available for writing.
  *
  *  @param  rport  A pointer to the read port.
  */
-void vfstream_flush_room(vfstream_rport_t *rport);
+void vftasks_flush_room(vftasks_rport_t *rport);
 
 
 /* ***************************************************************************
@@ -1128,7 +1131,7 @@ void vfstream_flush_room(vfstream_rport_t *rport);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_int8(vfstream_wport_t *wport, int8_t data);
+void vftasks_write_int8(vftasks_wport_t *wport, int8_t data);
 
 /** Writes a 16-bit integer value through a given write port to a FIFO channel.
  *
@@ -1138,7 +1141,7 @@ void vfstream_write_int8(vfstream_wport_t *wport, int8_t data);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_int16(vfstream_wport_t *wport, int16_t data);
+void vftasks_write_int16(vftasks_wport_t *wport, int16_t data);
 
 /** Writes a 32-bit integer value through a given write port to a FIFO channel.
  *
@@ -1148,7 +1151,7 @@ void vfstream_write_int16(vfstream_wport_t *wport, int16_t data);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_int32(vfstream_wport_t *wport, int32_t data);
+void vftasks_write_int32(vftasks_wport_t *wport, int32_t data);
 
 /** Writes a 64-bit integer value through a given write port to a FIFO channel.
  *
@@ -1158,7 +1161,7 @@ void vfstream_write_int32(vfstream_wport_t *wport, int32_t data);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_int64(vfstream_wport_t *wport, int64_t data);
+void vftasks_write_int64(vftasks_wport_t *wport, int64_t data);
 
 /** Writes a single-precision floating-point value through a given write port to
  *  a FIFO channel.
@@ -1169,7 +1172,7 @@ void vfstream_write_int64(vfstream_wport_t *wport, int64_t data);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_float(vfstream_wport_t *wport, float data);
+void vftasks_write_float(vftasks_wport_t *wport, float data);
 
 /** Writes a double-precision floating-point value through a given write port to
  *  a FIFO channel.
@@ -1180,7 +1183,7 @@ void vfstream_write_float(vfstream_wport_t *wport, float data);
  *  @param wport  A pointer to the port.
  *  @param data   The value.
  */
-void vfstream_write_double(vfstream_wport_t *wport, double data);
+void vftasks_write_double(vftasks_wport_t *wport, double data);
 
 /** Writes a pointer value through a given write port to a FIFO channel.
  *
@@ -1190,7 +1193,7 @@ void vfstream_write_double(vfstream_wport_t *wport, double data);
  *  @param  wport  A pointer to the port.
  *  @param  data   The value.
  */
-void vfstream_write_ptr(vfstream_wport_t *wport, void *data);
+void vftasks_write_ptr(vftasks_wport_t *wport, void *data);
 
 /** Reads an 8-bit integer value through a given read port from a FIFO channel.
  *
@@ -1202,7 +1205,7 @@ void vfstream_write_ptr(vfstream_wport_t *wport, void *data);
  *  @return
  *    The value.
  */
-int8_t vfstream_read_int8(vfstream_rport_t *rport);
+int8_t vftasks_read_int8(vftasks_rport_t *rport);
 
 /** Reads a 16-bit integer value through a given read port from a FIFO channel.
  *
@@ -1214,7 +1217,7 @@ int8_t vfstream_read_int8(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-int16_t vfstream_read_int16(vfstream_rport_t *rport);
+int16_t vftasks_read_int16(vftasks_rport_t *rport);
 
 /** Reads a 32-bit integer value through a given read port from a FIFO channel.
  *
@@ -1226,7 +1229,7 @@ int16_t vfstream_read_int16(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-int32_t vfstream_read_int32(vfstream_rport_t *rport);
+int32_t vftasks_read_int32(vftasks_rport_t *rport);
 
 /** Reads a 64-bit integer value through a given read port from a FIFO channel.
  *
@@ -1238,7 +1241,7 @@ int32_t vfstream_read_int32(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-int64_t vfstream_read_int64(vfstream_rport_t *rport);
+int64_t vftasks_read_int64(vftasks_rport_t *rport);
 
 /** Reads a single-precision floating-point value through a given read port from
  *  a FIFO channel.
@@ -1251,7 +1254,7 @@ int64_t vfstream_read_int64(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-float vfstream_read_float(vfstream_rport_t *rport);
+float vftasks_read_float(vftasks_rport_t *rport);
 
 /** Reads an double-precision floating-point value through a given read port
  *  from a FIFO channel.
@@ -1264,7 +1267,7 @@ float vfstream_read_float(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-double vfstream_read_double(vfstream_rport_t *rport);
+double vftasks_read_double(vftasks_rport_t *rport);
 
 /** Reads a pointer value through a given read port from a FIFO channel.
  *
@@ -1276,7 +1279,7 @@ double vfstream_read_double(vfstream_rport_t *rport);
  *  @return
  *    The value.
  */
-void *vfstream_read_ptr(vfstream_rport_t *rport);
+void *vftasks_read_ptr(vftasks_rport_t *rport);
 
 
 #endif /* __VFTASKS_H */
