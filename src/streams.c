@@ -48,7 +48,7 @@
  *  Calling vfstream_release_data releases the oldest acquired room token.
  */
 
-#include "vfstream.h"
+#include "vftasks.h"
 
 #include <stdlib.h>   /* for malloc, free, and abort  */
 #include <stdio.h>    /* for printing to stderr */

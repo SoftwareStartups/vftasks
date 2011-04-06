@@ -7,7 +7,7 @@
  * Fabrics.
  */
 
-#include "vfsync.h"
+#include "vftasks.h"
 
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */

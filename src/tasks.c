@@ -155,6 +155,9 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
     return 1;
   }
 
+  /* initially the worker does not have a task assigned */
+  worker->task = NULL;
+
   /* activate the worker and have it running on a freshly forked thread */
   worker->is_active = 1;
   rc = pthread_create(worker->thread,

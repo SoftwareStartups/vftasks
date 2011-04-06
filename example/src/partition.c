@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <vfstream.h>
+#include <vftasks.h>
 
 
 #define PROBLEM_SIZE         10000

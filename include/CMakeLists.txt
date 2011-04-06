@@ -1,4 +1,4 @@
-# Copyright (c) 2010 Vector Fabrics B.V. All rights reserved.
+# Copyright (c) 2010-2011 Vector Fabrics B.V. All rights reserved.
 
 # This file contains proprietary and confidential information of Vector
 # Fabrics and all use (including distribution) is subject to the conditions of
@@ -6,10 +6,6 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-.PHONY default all clean clean_all:
+cmake_minimum_required(VERSION 2.6)
 
-default all:
-	doxygen config/doxygen.conf
-
-clean clean_all:
-	rm -rf html
+install(FILES vftasks.h DESTINATION include)

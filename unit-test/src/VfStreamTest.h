@@ -14,7 +14,7 @@
 
 extern "C"
 {
-#include <vfstream.h>
+#include <vftasks.h>
 }
 
 class VfStreamTest : public CppUnit::TestFixture

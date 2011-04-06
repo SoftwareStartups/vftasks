@@ -11,15 +11,14 @@ include(CheckIncludeFileCXX)
 
 cmake_minimum_required(VERSION 2.6)
 
-project(example)
+project(unit_test)
 
 CHECK_INCLUDE_FILE(pthread.h pthread)
 CHECK_INCLUDE_FILE_CXX(cppunit/TestRunner.h unittest)
 
-file(GLOB src src/*.c)
 include_directories(../include)
-add_executable(example ${src})
-target_link_libraries(example vftasks pthread cppunit)
+add_definitions(-O3)
+add_library(vftasks tasks.c sync.c streams.c)
 
-enable_testing()
-add_test(example example)
+
+install(TARGETS vftasks DESTINATION lib)

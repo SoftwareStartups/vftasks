@@ -17,6 +17,9 @@ CHECK_INCLUDE_FILE(pthread.h pthread)
 CHECK_INCLUDE_FILE_CXX(cppunit/TestRunner.h unittest)
 
 file(GLOB src src/*.cpp)
-include_directories(../vfstream/include ../vftasks/include ../vfsync/include)
+include_directories(../include)
 add_executable(unit_test ${src})
-target_link_libraries(unit_test vfstream pthread cppunit)
+target_link_libraries(unit_test vftasks pthread cppunit)
+
+enable_testing()
+add_test(unit_test unit_test)
