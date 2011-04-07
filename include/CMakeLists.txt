@@ -6,6 +6,4 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-cmake_minimum_required(VERSION 2.6)
-
 install(FILES vftasks.h DESTINATION include)

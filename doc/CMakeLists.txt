@@ -6,23 +6,13 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-cmake_minimum_required(VERSION 2.6)
+set(config_file ${CMAKE_CURRENT_BINARY_DIR}/doxygen.conf)
 
-project(docs)
+configure_file(config/doxygen.conf.in ${config_file})
 
-find_program(doxygen doxygen)
+add_custom_target(
+  doc
+  COMMAND ${DOXYGEN} ${config_file}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 
-if (EXISTS ${doxygen})
-  set(config_file ${CMAKE_CURRENT_BINARY_DIR}/doxygen.conf)
-
-  configure_file(config/doxygen.conf.in ${config_file})
-
-  add_custom_target(
-    doc
-    COMMAND ${doxygen} ${config_file}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-
-else (EXISTS ${doxygen})
-  message(WARNING "not generating doxygen target: doxygen not installed")
-endif(EXISTS ${doxygen})

@@ -6,16 +6,6 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-include(CheckIncludeFile)
-include(CheckIncludeFileCXX)
-
-cmake_minimum_required(VERSION 2.6)
-
-project(unit_test)
-
-CHECK_INCLUDE_FILE(pthread.h pthread)
-CHECK_INCLUDE_FILE_CXX(cppunit/TestRunner.h unittest)
-
 file(GLOB src src/*.cpp)
 include_directories(../include)
 add_executable(unit_test ${src})
