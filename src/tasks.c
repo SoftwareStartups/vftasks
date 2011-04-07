@@ -70,7 +70,7 @@ struct vftasks_pool_s
 
 /** abort
  */
-void vftasks_abort(char *msg)
+static void vftasks_abort(char *msg)
 {
 #ifdef VFTASKS_ABORT_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
@@ -84,7 +84,7 @@ void vftasks_abort(char *msg)
 
 /** loop executed by a worker thread
  */
-void *vftasks_worker_loop(void *args)
+static void *vftasks_worker_loop(void *args)
 {
   vftasks_worker_t *worker;  /* pointer to the worker */
 
@@ -121,7 +121,7 @@ void *vftasks_worker_loop(void *args)
  * Access to thread-local chunks of workers
  * ***************************************************************************/
 
-__inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
+static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 {
   return (vftasks_chunk_t *)pthread_getspecific(pool->key);
 }
@@ -132,7 +132,8 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** initialize worker
  */
-  __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker, pthread_key_t key)
+  static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
+                                                  pthread_key_t key)
 {
   int rc;
 
@@ -178,7 +179,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** finalize worker
  */
-  __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
+static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
 {
   /* deactivate the worker and join with the thread it is running on */
   worker->is_active = 0;
@@ -193,7 +194,8 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** create and activate a chunk of workers of a given size
  */
-  __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers, pthread_key_t key)
+static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
+                                                          pthread_key_t key)
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
@@ -236,7 +238,7 @@ __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** destroy a chunk of workers
  */
-void vftasks_destroy_workers(vftasks_chunk_t *chunk)
+static void vftasks_destroy_workers(vftasks_chunk_t *chunk)
 {
   vftasks_worker_t *worker;  /* pointer to a worker in the chunk */
 
