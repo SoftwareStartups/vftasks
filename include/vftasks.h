@@ -6,147 +6,233 @@
  * agreement in place, no usage or distribution rights are granted by Vector
  * Fabrics.
  */
+
 #ifndef __VFTASKS_H
 #define __VFTASKS_H
 
 /** \mainpage vfTasks library API documentation
  *
  * \section sec_intro Introduction
- *  This document describes the concepts behind Vector Fabrics' vfStream
- *  library and the programming interface to it.
- *  Vector Fabrics' vfStream is a library to communicate data items between
- *  different threads in a First-In-First-Out (FIFO) ordering.
- *  Communication between threads requires synchronization, and synchronization
- *  overhead may introduce significant slowdowns in a multi-threaded program.
- *  vfStream is designed such that the communication overheads can be tuned
- *  and hence avoid the slowdown brought on by excessive synchronization.
+ * This document describes the concepts behind Vector Fabrics' vfTasks
+ * library and the programming interface to it.
+ * Vector Fabrics' vfTasks offers the basic mechanisms that are needed to
+ * parallellize your software:
+ * - worker thread pools
+ * - 2-D task synchronization
+ * - cross-thread communication channels
  *
- * \section sec_fifo_intro FIFO channels and cross-thread communication
- *  A FIFO queue can be regarded as uni-directional communication
- *  channel between writer and reader code.
- *  The FIFO queue ensures that the data items are consumed by readers
- *  in the same order as writers produced the data.
- *  In multithreaded programs, FIFO queues can be used to communicate
- *  writers and readers that run concurrently in different threads.
- *  @verbatim
+ * \section sec_error_handling Error handling
+ * By default, members of the vfTasks API terminate the calling program when a failure
+ * is encountered.
+ * This behaviour can be overriden by compiling vfSync with the
+ * VFTASKS_ABORT_ON_FAILURE preprocessor symbols undefined.
+ *
+ * \page FIFO Channels and cross-thread communication
+ * A FIFO queue can be regarded as uni-directional communication
+ * channel between writer and reader code.
+ * The FIFO queue ensures that the data items are consumed by readers
+ * in the same order as writers produced the data.
+ * In multithreaded programs, FIFO queues can be used to communicate
+ * writers and readers that run concurrently in different threads.
+ * \verbatim
                  +--------------+               +-----------+
                  |              |     FIFO      |           |
                  |   writer     |-------------->| reader    |
                  |  thread #1   |               | thread #2 |
                  |              |               |           |
                  +--------------+               +-----------+
-    @endverbatim
- *  A FIFO channel between threads requires synchronization between
- *  the writer and the reader. If a FIFO becomes empty, the writer
- *  has to wait for data items to become available on the FIFO. This is
- *  usually implemented by blocking:
- *     - the reader thread blocks when the FIFO is empty,
- *     - when new data becomes available, the reader thread
- *       is awakened and resumes computation.
+   \endverbatim
+ * A FIFO channel between threads requires synchronization between
+ * the writer and the reader. If a FIFO becomes empty, the writer
+ * has to wait for data items to become available on the FIFO. This is
+ * usually implemented by blocking:
+ *    - the reader thread blocks when the FIFO is empty,
+ *    - when new data becomes available, the reader thread
+ *      is awakened and resumes computation.
  *
- *  The same blocking behaviour can be used when the FIFO becomes full.
- *  FIFOs usually have a finite capacity for storing data items.
- *  If the writer finds that the FIFO is full, it will block until
- *  space in the FIFO becomes available as a result of the reader
- *  consuming data items.
+ * The same blocking behaviour can be used when the FIFO becomes full.
+ * FIFOs usually have a finite capacity for storing data items.
+ * If the writer finds that the FIFO is full, it will block until
+ * space in the FIFO becomes available as a result of the reader
+ * consuming data items.
  *
  * \section sec_overhead Synchronization overhead
- *  If the reader cannot keep up with the writer, i.e. the writer
- *  produces items faster than the reader can consume, the
- *  writer will frequently become blocked, waiting on the FIFO to
- *  become non-full.
+ * If the reader cannot keep up with the writer, i.e. the writer
+ * produces items faster than the reader can consume, the
+ * writer will frequently become blocked, waiting on the FIFO to
+ * become non-full.
  *
- *  In such situations, the following sequence of events can be observed:
- *     - the writer computes new data and blocks on a full FIFO,
- *     - the reader consumes a data item from the FIFO,
- *     - now that the FIFO is not full the writer
- *       awakens and pushes an item into the FIFO,
- *     - the sequence of events restarts. 
+ * In such situations, the following sequence of events can be observed:
+ *    - the writer computes new data and blocks on a full FIFO,
+ *    - the reader consumes a data item from the FIFO,
+ *    - now that the FIFO is not full the writer
+ *      awakens and pushes an item into the FIFO,
+ *    - the sequence of events restarts.
  *
- *  There is overhead associated
- *  with blocking and waking a thread. In the example just described the
- *  blocking/waking is too frequent. It follows that the overhead
- *  may be significant and slowdown the program noticeably.
+ * There is overhead associated
+ * with blocking and waking a thread. In the example just described the
+ * blocking/waking is too frequent. It follows that the overhead
+ * may be significant and slowdown the program noticeably.
  *
  * \section sec_watermarks Watermarks: avoiding synchronization overhead.
- *  The key idea behind vfStream is to use tunable parameters to reduce
- *  the frequency at which writer and reader threads are blocked and awakened.
- *  This allows the user of the library to keep synchronization overhead
- *  reasonable and therefore avoid a noticeable slowdown of the program
- *  using the library.
- *  @verbatim
+ * The key idea behind vfTasks is to use tunable parameters to reduce
+ * the frequency at which writer and reader threads are blocked and awakened.
+ * This allows the user of the library to keep synchronization overhead
+ * reasonable and therefore avoid a noticeable slowdown of the program
+ * using the library.
+ * \verbatim
                  +--------------+               +-----------+
                  |              |     FIFO      |           |
                  |   writer     |-------------->| reader    |
                  |  thread #1   | | 1| 2| 3| 4| | thread #2 |
                  |              |-------------->|           |
                  +--------------+               +-----------+
-    @endverbatim
- *  Suppose the reader becomes blocked because the FIFO is currently
- *  empty. vfStream has a parameter that controls when the reader
- *  will be woken up, this parameter is called a reader watermark. The
- *  reader watermark parameter tells vfStream how many elements
- *  there must be in the FIFO in order to wake up the reader thread.
- *  In this way, vfStream can ensure that there is a reasonable
- *  amount of work for the reader to perform before it is blocked again.
+   \endverbatim
+ * Suppose the reader becomes blocked because the FIFO is currently
+ * empty. vfTasks has a parameter that controls when the reader
+ * will be woken up, this parameter is called a reader watermark. The
+ * reader watermark parameter tells vfTasks how many elements
+ * there must be in the FIFO in order to wake up the reader thread.
+ * In this way, vfTasks can ensure that there is a reasonable
+ * amount of work for the reader to perform before it is blocked again.
  *
- *  Similarly, vfStream supports setting a writer watermark. This watermark
- *  specifies how many slots must be available in the FIFO before the
- *  writer thread is woken up.
+ * Similarly, vfTasks supports setting a writer watermark. This watermark
+ * specifies how many slots must be available in the FIFO before the
+ * writer thread is woken up.
  *
- *  Reader/writer watermarks are set using the functions vfstream_set_min_data() and
- *  vfstream_set_min_room().
+ * Reader/writer watermarks are set using the functions vftasks_set_min_data() and
+ * vftasks_set_min_room().
  *
  * \section sec_block_spin Blocking or spinning
- *  vfStream allows the programmer to specify the behavior of reader/writer
- *  threads when the FIFO is empty/full. The default behavior is to let
- *  the thread to spin while the resource is unavailable. For instance,
- *  if the reader thread tries to consume an empty FIFO, it will loop
- *  (therefore using CPU resources) until data becomes available on
- *  the FIFO.
+ * vfTasks allows the programmer to specify the behavior of reader/writer
+ * threads when the FIFO is empty/full. The default behavior is to let
+ * the thread to spin while the resource is unavailable. For instance,
+ * if the reader thread tries to consume an empty FIFO, it will loop
+ * (therefore using CPU resources) until data becomes available on
+ * the FIFO.
  *
- *  vfStream also allows the programmer to specify blocking behavior by
- *  means of hooks. The hooks can be set using the function
- *  vfstream_install_chan_hooks().
+ * vfTasks also allows the programmer to specify blocking behavior by
+ * means of hooks. The hooks can be set using the function
+ * vftasks_install_chan_hooks().
  *
  * \section sec_tokens_stuff Tokens, channels and ports
- *  Tokens are the basic unit of information that can be communicated
- *  between readers and writers. Tokens are associated with buffers
- *  that contain the data.
- *  Using tokens, the communication takes place as follows:
- *     - the writer acquires a token by calling vfstream_acquire_room(),
- *     - the writer writes the data into the token and releases it by
- *       calling vfstream_release_data(),
- *     - the reader receives a token of data from the writer by calling
- *       vfstream_acquire_data(),
- *     - the reader consumes the data and when done, releases the token
- *       by calling vfstream_release_room().
+ * Tokens are the basic unit of information that can be communicated
+ * between readers and writers. Tokens are associated with buffers
+ * that contain the data.
+ * Using tokens, the communication takes place as follows:
+ *    - the writer acquires a token by calling vftasks_acquire_room(),
+ *    - the writer writes the data into the token and releases it by
+ *      calling vftasks_release_data(),
+ *    - the reader receives a token of data from the writer by calling
+ *      vftasks_acquire_data(),
+ *    - the reader consumes the data and when done, releases the token
+ *      by calling vftasks_release_room().
  *
- *  In order to use a vfStream FIFO channel, the program must create:
- *     - a channel, by means of vfstream_create_chan()
- *     - a read port, by means of vfstream_create_read_port()
- *     - a write port, by means of vfstream_create_write_port()
+ * In order to use a vfTasks FIFO channel, the program must create:
+ *    - a channel, by means of vftasks_create_chan()
+ *    - a read port, by means of vftasks_create_read_port()
+ *    - a write port, by means of vftasks_create_write_port()
  *
- *  When creating a channel, the program must specify the amount of
- *  tokens it can contain, and the size of each token.
+ * When creating a channel, the program must specify the amount of
+ * tokens it can contain, and the size of each token.
  *
  * \section sec_memory Custom memory management
- *  Channel and channel port functions take additional arguments
- *  for memory allocation and deallocation. In most common cases,
- *  it is sufficient to use C's malloc and free functions:
- *  @verbatim
-  vfstream_malloc_t mem_mgr;
+ * Channel and channel port functions take additional arguments
+ * for memory allocation and deallocation. In most common cases,
+ * it is sufficient to use C's malloc and free functions:
+ * \verbatim
+  vftasks_malloc_t mem_mgr;
   mem_mgr.malloc = malloc;
   mem_mgr.free = free;
-    @endverbatim
+   \endverbatim
  *  In some cases, however, it is desirable to have additional control
  *  on what areas of memory are used for allocation.
  *  This could be useful, for example, when interfacing with hardware devices.
- * \section sec_error_handling Error handling
- *  By default, members of the vfSync API terminate the calling program when a failure
- *  is encountered.
- *  This behaviour can be overriden by compiling vfSync with the
- *  VFSYNC_ABORT_ON_FAILURE preprocessor symbols undefined.
+ *
+ * \page page_worker_threads Worker thread pools
+ * A worker thread is a background thread, which the program can use to
+ * occasionally execute different tasks. The advantage of a worker
+ * thread compared to a fork-join parallelization is that spawning a
+ * task on a worker thread does not incur the substantial thread
+ * creation and destruction overheads.
+ *
+ * \section sec_pool_creation Pool creation
+ * The following code snippet shows how to create a pool of 4 (idle) worker threads:
+ * \code
+ * vftasks_pool_t *worker_pool;
+ * worker_pool = vftasks_create_pool(4);
+ * \endcode
+ *
+ * \section sec_task_submit Submitting tasks
+ * Once the worker threads are created,
+ * tasks in the form of function pointers can be distributed among the workers.
+ * Note, that the function prototypes should be prepared in a special way.
+ * Change the function interface to the following signature:
+ * \code void *(vftasks_task_t)(void *) \endcode
+ * Arguments of the original function should be packed in a struct.
+ * The result is returned through a void pointer so can be of any type.
+ * The submitting is done as follows:
+ * \code vftasks_submit(worker_pool, task_fun_ptr, args_struct, num_workers); \endcode
+ * The result of the task can be obtained by the following (blocking) call:
+ * \code vftasks_get(worker_pool, &result_ptr);\endcode
+ * This call blocks until all workers in the given pool have finished.
+ *
+ * \page page_2d_sync 2-dimensional task synchronization
+ * When distributing the iterations of a loop over multiple concurrent tasks, it is
+ * important that any communication from one task to another task is properly
+ * synchronized. This means that before a task reads data that is produced by another
+ * task, it checks that the other task has actually finished computing that data. If
+ * not, then the receiving task suspends itself until the data becomes available.
+ *
+ * \section sec_2d_sync_mgr 2D-synchronization manager
+ * The vfTasks API provides functionality for managing such synchronization when the
+ * partitioned loop contains a nested loop and data is exchanged between different
+ * iterations of the inner loop that are themselves distributed over different iterations
+ * of the outer loop.
+ * Having this functionality available requires the creation of a so-called
+ * 2D-synchronization manager for the partitioned loop.
+ *
+ * \section sec_2d_sync_example Example
+ * Consider the following program fragment:
+ * \code
+ * for (i = 0; i < 1024; i++)
+ * {
+ *   for (j = 0; j < 16; j++)
+ *   {
+ *     if (i >= 2 && j < 15)
+ *     {
+ *       a[i][j] += a[i - 2][j + 1];
+ *     }
+ *   }
+ * }
+ * \endcode
+ *
+ * Here, the inner loop consumes values that are produced in earlier iterations of the
+ * outer loop.
+ * The critical distance for the outer loop is 2 (as values are produced two iterations
+ * before they are used), whereas the critical distance for the inner loop is -1.
+ * Hence, to enable 2D-synchronization of the loops, we have to adapt the code as follows:
+ * \code
+ * #include <vftasks.h>
+ *
+ * ...
+ *
+ * vftasks_2d_sync_mgr_t *sync_mgr = vftasks_create_2d_sync_mgr(1024, 16, 2, -1);
+ * for (i = 0; i < 1024; i++)
+ * {
+ *   for (j = 0; j < 16; j++)
+ *   {
+ *     vftasks_wait_2d(sync_mgr, i, j);
+ *     if (i >= 2 && j < 15)
+ *     {
+ *       a[i][j] += a[i - 2][j + 1];
+ *     }
+ *     vftasks_signal_2d(sync_mgr, i, j);
+ *   }
+ * }
+ * vftasks_destroy_2d_sync_mgr(sync_mgr);
+ * \endcode
+ *
  */
 
 
@@ -163,6 +249,8 @@ typedef int bool_t;
 #define false 0
 #define true 1
 #endif
+
+#define VFTASKS_ABORT_ON_FAILURE
 
 
 /* ***************************************************************************
@@ -289,7 +377,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
 /** Destroys a given handle for managing two-dimension synchronization between
  *  concurrent tasks.
  *
- *  @mgr  A pointer to the handle.
+ *  @param mgr  A pointer to the handle.
  */
 void vftasks_destroy_2d_sync_mgr(vftasks_2d_sync_mgr_t *mgr);
 
