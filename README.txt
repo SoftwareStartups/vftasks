@@ -1,14 +1,17 @@
-vfStream 1.0
+vfTasks 1.1
 ==============
 
-This file describes the vfStream library from Vector Fabrics.
+This file describes the vfTasks library from Vector Fabrics.
 
-What is vfStream?
+What is vfTasks?
 =================
 
-  vfStream is a streaming library with a C API to communicate data between POSIX threads.
+  vfStream is a library with a C API containing the following features:
+  - Manage worker thread pools
+  - Inter-thread streaming communication channels
+  - 2-D synchronization for parallelized loops
 
-  For more information, visit http://www.vectorfabrics.com/content/vfstream
+  For more information, visit http://www.vectorfabrics.com/content/vftasks
 
 Installing
 ==========
@@ -25,14 +28,14 @@ Unit Tests
 Documentation and Support
 =========================
 
-  Examples on how to use vfStream APIs are located in example/src.
-  See http://www.vectorfabrics.com/content/products/vfstream for the example documentation.
+  Examples on how to use vfTasks APIs are located in example/src.
+  See http://www.vectorfabrics.com/content/products/vftasks for the example documentation.
 
 
 Copyright
 =========
 
-  All of the code in this distribution is Copyright (c) 2010
+  All of the code in this distribution is Copyright (c) 2011
   Vector Fabrics B.V.
 
   The included LICENSE.txt file describes the license in detail.

@@ -1,54 +1,74 @@
-1 vfStream Installation
+1 vfTasks Installation
 =======================
 
-This file describes how to build the vfStream library on your local system.
+This file describes how to build the vfTasks library on your local system.
 
 
-2 Obtaining vfStream
+2 Obtaining vfTasks
 ====================
 
-  1. Download vfStream archive from the Vector Fabrics website
-     http://www.vectorfabrics.com/crm/vfstream.
+  1. Download vfTasks archive from the Vector Fabrics website
+     http://www.vectorfabrics.com/crm/vftasks.
      This requires an active account for any of the Vector Fabrics products.
 
-  2. Unpack the vfStream archive in a local directory.
-     $ gzip -cd vfstream-<version>.tar.gz | tar xf -
-     $ cd vfstream-<version>
+  2. Unpack the vfTasks archive in a local directory.
+     $ tar -zxvf vftasks-<version>.tar.gz
 
 
 3 Prerequisites
 ===============
 
-  * The GNU C compiler (gcc) is required. Alternative ANSI C compilers may be used but are not tested.
+  * To configure the source, CMake is needed (http://www.cmake.org).
 
-  * To build the source, the GNU Make system is used (http://www.gnu.org/software/make)
+  * To compile and run the unit tests, the GNU C++ compiler (g++) or alternative ANSI C++
+    compiler is required. In addition, the CppUnit library is required
+    (http://sourceforge.net/apps/mediawiki/cppunit)
 
-  * To compile and run the unit tests, the GNU C++ compiler (g++) or alternative ANSI C++ compiler is required.
-    In addition, the CppUnit library is required (http://sourceforge.net/apps/mediawiki/cppunit)
-
-  * To build the (html) documentation from the sources, Doxygen is required (http://www.stack.nl/~dimitri/doxygen)
-
-The build has been verified on Ubuntu 9.10 64 bits and 32 bits with gcc/g++ version 4.4.1, CppUnit version , and Doxygen 1.6.3
+  * To build the (html) documentation from the sources,
+    Doxygen is required (http://www.stack.nl/~dimitri/doxygen).
 
 3.1 Debian/Ubuntu
 -----------------
 
-  * Install the following packages to build the sources:
-    $ sudo apt-get install gcc libc-dev libc6-dev make
+  * The GNU C compiler (gcc) is required.
+    Alternative ANSI C compilers may be used but are not tested.
+    $ sudo apt-get install gcc libc-dev libc6-dev
 
-  * To build the unit test and documentation, install the following packages:
+  * To build the source, the GNU Make system is used (http://www.gnu.org/software/make).
+    $ sudo apt-get install make cmake
+
+  * For unit testing and doxygen:
     $ sudo apt-get install g++ libcppunit-dev doxygen
 
+3.2 Windows
+-----------
 
-4 Building vfStream
+  * An ansi C compiler and build environment are needed.
+    Microsoft freely offers Visual Studio Express
+    (http://www.microsoft.com/express/Downloads/#2010-Visual-CPP)
+
+  * A POSIX compliant thread library. (http://sourceware.org/pthreads-win32/).
+
+
+The build has been verified on Ubuntu 9.10 64 bits and 32 bits with gcc/g++ version 4.4.1,
+CppUnit version , and Doxygen 1.6.3
+
+
+4 Building vfTasks
 ===================
 
-  * Build vfstream:
-    $ cd vfstream-<version>
-    $ make vfstream
+  $ cd vftasks-<version>
+  $ mkdir build
+  $ cd build
 
-    The vfStream library is created in vfstream-<version>/vfstream/lib/<platform>/libvfstream.a
-    The include files are located in vfstream-<version>/vfstream/include
+4.1 Debian/Ubuntu
+-----------------
+
+  * Configure the build:
+    cmake ..
+
+  * Build and install the library and headers:
+    make install DESTDIR=<PATH_TO_INSTALL_DIR>
 
   * Build and run the unit tests:
     $ make test
@@ -56,12 +76,19 @@ The build has been verified on Ubuntu 9.10 64 bits and 32 bits with gcc/g++ vers
   * Build the html documentation:
     $ make doc
     
-    The documentation is located under vfstream-<version>/doc/html/
+    The documentation is located under vftasks-<version>/doc/html/
 
-  * Clean the object files with:
+  * Clean the build directory with:
     $ make clean
 
-    or to start from a clean distribution:
-    $ make clean_all
+The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
+The include files are located in <PATH_TO_INSTALL_DIR>/include
 
+4.1 Windows
+-----------------
+
+  * Configure the sources for use in MicroSoft Visual Studio:
+    $ cmake -G "Visual Studio <VERSION>" ..
+
+  * Open the generated solution file with the Visual Studio IDE.
 
