@@ -872,8 +872,6 @@ void VfStreamTest::testAcquiringDataAfterFillingAndEmptying()
 
 void VfStreamTest::testSharedMemorySupport()
 {
-  vftasks_chan_t *chan;  // pointer to a channel
-
   CREATE_CHAN(16, 8);
 
   // verify shared-memory support
