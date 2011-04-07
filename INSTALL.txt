@@ -69,20 +69,19 @@ CppUnit version , and Doxygen 1.6.3
 
   * Build and install the library and headers:
     make install DESTDIR=<PATH_TO_INSTALL_DIR>
+    The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
+    The include files are located in <PATH_TO_INSTALL_DIR>/include
 
   * Build and run the unit tests:
     $ make test
 
   * Build the html documentation:
     $ make doc
-    
-    The documentation is located under vftasks-<version>/doc/html/
+    The documentation is located under vftasks-<version>/build/doc/html/
 
   * Clean the build directory with:
     $ make clean
 
-The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
-The include files are located in <PATH_TO_INSTALL_DIR>/include
 
 4.1 Windows
 -----------------

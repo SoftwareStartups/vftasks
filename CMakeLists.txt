@@ -13,7 +13,7 @@ project(vftasks)
 add_subdirectory(src)
 add_subdirectory(include)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
-add_subdirectory(unit-test EXCLUDE_FROM_ALL)
+add_subdirectory(unit-test)
 add_subdirectory(example EXCLUDE_FROM_ALL)
 
 enable_testing()

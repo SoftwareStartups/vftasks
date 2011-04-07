@@ -20,6 +20,3 @@ file(GLOB src src/*.c)
 include_directories(../include)
 add_executable(example ${src})
 target_link_libraries(example vftasks pthread cppunit)
-
-enable_testing()
-add_test(example example)
