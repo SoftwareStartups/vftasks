@@ -1,4 +1,4 @@
-vfTasks 1.1
+vfTasks 1.0
 ==============
 
 This file describes the vfTasks library from Vector Fabrics.
@@ -11,18 +11,13 @@ What is vfTasks?
   - Inter-thread streaming communication channels
   - 2-D synchronization for parallelized loops
 
-  For more information, visit http://www.vectorfabrics.com/content/vftasks
+  For more information, visit http://www.vectorfabrics.com/content/products/vftasks
+
 
 Installing
 ==========
 
-  Instructions for installing this software are in INSTALL.txt
-
-Unit Tests
-==========
-
-  See our unit tests run proving that the software is BugFree(TM),
-  details on how to build see INSTALL.txt
+  Instructions for installing and testing this software are in INSTALL.txt
 
 
 Documentation and Support

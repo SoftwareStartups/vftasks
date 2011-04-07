@@ -8,8 +8,7 @@ This file describes how to build the vfTasks library on your local system.
 ====================
 
   1. Download vfTasks archive from the Vector Fabrics website
-     http://www.vectorfabrics.com/crm/vftasks.
-     This requires an active account for any of the Vector Fabrics products.
+     http://www.vectorfabrics.com/content/products/vftasks.
 
   2. Unpack the vfTasks archive in a local directory.
      $ tar -zxvf vftasks-<version>.tar.gz
@@ -50,8 +49,8 @@ This file describes how to build the vfTasks library on your local system.
   * A POSIX compliant thread library. (http://sourceware.org/pthreads-win32/).
 
 
-The build has been verified on Ubuntu 9.10 64 bits and 32 bits with gcc/g++ version 4.4.1,
-CppUnit version , and Doxygen 1.6.3
+The build has been verified on Ubuntu 10.04 64 bits and 32 bits with gcc/g++ version 4.4.3,
+CppUnit version 1.12.1, and Doxygen 1.6.3
 
 
 4 Building vfTasks
