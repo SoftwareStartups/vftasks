@@ -6,7 +6,9 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
-file(GLOB src src/*.c)
 include_directories(../include)
-add_executable(example ${src})
-target_link_libraries(example vftasks pthread cppunit)
+add_executable(streams src/streams.c)
+target_link_libraries(streams vftasks pthread)
+
+add_executable(2d_partitioned src/2d_partitioned.c)
+target_link_libraries(2d_partitioned vftasks pthread)
