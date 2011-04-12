@@ -70,9 +70,9 @@ struct vftasks_pool_s
 
 /** abort
  */
-static void vftasks_abort(char *msg)
+static void abort_on_fail(char *msg)
 {
-#ifdef VFTASKS_ABORT_ON_FAILURE
+#ifdef ABORT_ON_FAIL_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -141,7 +141,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   worker->thread = (pthread_t *)malloc(sizeof(pthread_t));
   if (worker->thread == NULL)
   {
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return 1;
   }
 
@@ -169,7 +169,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   {
     free(worker->chunk);
     free(worker->thread);
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return 1;
   }
 
@@ -209,7 +209,7 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
   if (chunk->base == NULL)
   {
     free(chunk);
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return NULL;
   }
   chunk->limit = chunk->base + num_workers;
@@ -227,7 +227,7 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
       }
       free((vftasks_nv_worker_t *)chunk->base);
       free(chunk);
-      vftasks_abort("vftasks_create_pool");
+      abort_on_fail("vftasks_create_pool");
       return NULL;
     }
   }
@@ -268,7 +268,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   pool = (vftasks_pool_t *)malloc(sizeof(vftasks_pool_t));
   if (pool == NULL)
   {
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return NULL;
   }
 
@@ -276,7 +276,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   if (pthread_key_create(&key, NULL) != 0)
   {
     free(pool);
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return NULL;
   }
 
@@ -289,7 +289,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   {
     pthread_key_delete(key);
     free(pool);
-    vftasks_abort("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool");
     return NULL;
   }
 
@@ -339,14 +339,14 @@ int vftasks_submit(vftasks_pool_t *pool,
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
-    vftasks_abort("vftasks_submit");
+    abort_on_fail("vftasks_submit");
     return 1;
   }
 
   /* check that there are enough workers available to execute the task */
   if (chunk->tail + num_workers >= chunk->limit)
   {
-    vftasks_abort("vftasks_submit");
+    abort_on_fail("vftasks_submit");
     return 1;
   }
 
@@ -382,14 +382,14 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
-    vftasks_abort("vftasks_get");
+    abort_on_fail("vftasks_get");
     return 1;
   }
 
   /* check that there is a task being executed */
   if (chunk->head >= chunk->tail)
   {
-    vftasks_abort("vftasks_get");
+    abort_on_fail("vftasks_get");
     return 1;
   }
 

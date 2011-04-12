@@ -35,9 +35,9 @@ struct vftasks_2d_sync_mgr_s
 
 /** abort
  */
-void vftasks_abort(char *msg)
+void abort_on_fail(char *msg)
 {
-#ifdef VFTASKS_ABORT_ON_FAILURE
+#ifdef ABORT_ON_FAIL_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -57,7 +57,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   mgr = (vftasks_2d_sync_mgr_t *)malloc(sizeof(vftasks_2d_sync_mgr_t));
   if (mgr == NULL)
   {
-    vftasks_abort("vftasks_create_2d_mgr");
+    abort_on_fail("vftasks_create_2d_mgr");
     return NULL;
   }
 
@@ -72,7 +72,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   if (mgr->sems == NULL)
   {
     free(mgr);
-    vftasks_abort("vftasks_create_2d_mgr");
+    abort_on_fail("vftasks_create_2d_mgr");
     return NULL;
   }
 
@@ -116,7 +116,7 @@ int vftasks_signal_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
     /* signal through the current outer iteration's semaphore; on failure, return 1 */
     if(sem_post(&mgr->sems[x]))
     {
-      vftasks_abort("vftasks_signal_2d");
+      abort_on_fail("vftasks_signal_2d");
       return 1;
     }
   }
@@ -136,7 +136,7 @@ int vftasks_wait_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
     /* wait through the other iteration's semaphore; on failure, return 1 */
     if (sem_wait(&mgr->sems[x - mgr->dist_x]))
     {
-      vftasks_abort("vftasks_wait_2d");
+      abort_on_fail("vftasks_wait_2d");
       return 1;
     }
   }
