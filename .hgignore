@@ -3,3 +3,4 @@ x86_64-linux
 i486-linux
 unit-test/result.xml
 .svn
+build
