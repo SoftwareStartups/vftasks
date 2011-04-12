@@ -11,7 +11,7 @@ test: install
 	cd $(BUILDDIR) && make test
 
 release: install
-	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFSTREAMINSTALL)/vftasks.tgz
+	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFSTREAMINSTALL)/vfstream.tgz
 
 $(BUILDDIR):
 	mkdir -p $@
