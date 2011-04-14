@@ -72,7 +72,7 @@ struct vftasks_pool_s
  */
 static void abort_on_fail(char *msg)
 {
-#ifdef ABORT_ON_FAIL_ON_FAILURE
+#ifdef VFTASKS_ABORT_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -199,6 +199,8 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
+
+  if (num_workers <= 0) return NULL;
 
   /* allocate the chunk */
   chunk = (vftasks_chunk_t *)malloc(sizeof(vftasks_chunk_t));
@@ -335,7 +337,19 @@ int vftasks_submit(vftasks_pool_t *pool,
                                 calling thread has at its disposal */
   vftasks_worker_t *worker;  /* pointer to the worker that is to execute the task */
 
-  /* retrieve the chuck of subsidiary workers */
+  if (task == NULL)
+  {
+    abort_on_fail("vftasks_submit");
+    return 1;
+  }
+
+  if (num_workers < 0)
+  {
+    abort_on_fail("vftasks_submit");
+    return 1;
+  }
+
+  /* retrieve the chunk of subsidiary workers */
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
@@ -378,7 +392,7 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
                                 calling thread has at its disposal */
   vftasks_worker_t *worker;  /* pointer to the worker that is executing the task */
 
-  /* retrieve the chuck of subsidiary workers */
+  /* retrieve the chunk of subsidiary workers */
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {

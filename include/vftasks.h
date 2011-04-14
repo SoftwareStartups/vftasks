@@ -250,7 +250,7 @@ typedef int bool_t;
 #define true 1
 #endif
 
-#define VFTASKS_ABORT_ON_FAILURE
+/*#define VFTASKS_ABORT_ON_FAILURE*/
 
 
 /* ***************************************************************************
@@ -751,7 +751,7 @@ vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport);
  * Channel-state queries
  * ***************************************************************************/
 
-/** Retrieves whether or not a connected FIFO channel has any tokens available 
+/** Retrieves whether or not a connected FIFO channel has any tokens available
  *  for acquisition through a given write port.
  *
  *  @param  wport  A pointer to the port.
@@ -762,7 +762,7 @@ vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport);
  */
 bool_t vftasks_room_available(vftasks_wport_t *wport);
 
-/** Retrieves whether or not a connected FIFO channel has any tokens available 
+/** Retrieves whether or not a connected FIFO channel has any tokens available
  *  for acquisition through a given read port.
  *
  *  @param  rport  A pointer to the port.

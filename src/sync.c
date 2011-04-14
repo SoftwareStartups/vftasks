@@ -37,7 +37,7 @@ struct vftasks_2d_sync_mgr_s
  */
 void abort_on_fail(char *msg)
 {
-#ifdef ABORT_ON_FAIL_ON_FAILURE
+#ifdef VFTASKS_ABORT_ON_FAILURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -52,6 +52,12 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
 {
   vftasks_2d_sync_mgr_t *mgr;  /* pointer to the manager */
   int x;                 /* index */
+
+  if (abs(dist_x) >= dim_x || abs(dist_y) >= dim_y)
+  {
+    abort_on_fail("vftasks_create_2d_mgr");
+    return NULL;
+  }
 
   /* allocate a manager */
   mgr = (vftasks_2d_sync_mgr_t *)malloc(sizeof(vftasks_2d_sync_mgr_t));
