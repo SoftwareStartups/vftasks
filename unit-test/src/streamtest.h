@@ -6,8 +6,8 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#ifndef VFSTREAMTEST_H
-#define VFSTREAMTEST_H
+#ifndef STREAMTEST_H
+#define STREAMTEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <pthread.h>
@@ -17,9 +17,9 @@ extern "C"
 #include <vftasks.h>
 }
 
-class VfStreamTest : public CppUnit::TestFixture
+class StreamTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE(VfStreamTest);
+  CPPUNIT_TEST_SUITE(StreamTest);
 
   CPPUNIT_TEST(testCreation);
   CPPUNIT_TEST(testCreatingTokenlessChannel);
@@ -109,7 +109,7 @@ class VfStreamTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testHittingHighWaterMark);
   CPPUNIT_TEST(testPassingHighWaterMark);
 
-  CPPUNIT_TEST_SUITE_END();  // VfStreamTest
+  CPPUNIT_TEST_SUITE_END();  // StreamTest
 
 public:
   void increaseWriterSuspendCount();
@@ -225,4 +225,4 @@ private:
   int readerResumeCount;      // reader-resume count
 };
 
-#endif  // VFSTREAMTEST_H
+#endif  // STREAMTEST_H

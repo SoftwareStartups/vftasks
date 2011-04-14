@@ -6,7 +6,7 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#include "VfTasksTest.h"
+#include "taskstest.h"
 
 #include <cstdlib>  // for malloc, free
 
@@ -34,7 +34,7 @@ static void *square(void *raw_args)
   return result;
 }
 
-void VfTasksTest::tearDown()
+void TasksTest::tearDown()
 {
   if (this->pool != NULL)
     vftasks_destroy_pool(pool);
@@ -43,44 +43,44 @@ void VfTasksTest::tearDown()
     free(args);
 }
 
-void VfTasksTest::testCreateEmptyPool()
+void TasksTest::testCreateEmptyPool()
 {
   vftasks_pool_t *pool = vftasks_create_pool(0);
   CPPUNIT_ASSERT(pool == NULL);
 }
 
-void VfTasksTest::testCreateInvalidPool()
+void TasksTest::testCreateInvalidPool()
 {
   vftasks_pool_t *pool = vftasks_create_pool(-1);
   CPPUNIT_ASSERT(pool == NULL);
 }
 
-void VfTasksTest::testCreatePool1()
+void TasksTest::testCreatePool1()
 {
   vftasks_pool_t *pool = vftasks_create_pool(1);
   CPPUNIT_ASSERT(pool != NULL);
   vftasks_destroy_pool(pool);
 }
 
-void VfTasksTest::testCreatePool4()
+void TasksTest::testCreatePool4()
 {
   vftasks_pool_t *pool = vftasks_create_pool(4);
   CPPUNIT_ASSERT(pool != NULL);
 }
 
-void VfTasksTest::testDestroyPool()
+void TasksTest::testDestroyPool()
 {
   vftasks_pool_t *pool = vftasks_create_pool(4);
   vftasks_destroy_pool(pool);
 }
 
-void VfTasksTest::testSubmitEmptyTask()
+void TasksTest::testSubmitEmptyTask()
 {
   this->pool = vftasks_create_pool(1);
   CPPUNIT_ASSERT(vftasks_submit(pool, NULL, NULL, 0) != 0);
 }
 
-void VfTasksTest::testSubmit()
+void TasksTest::testSubmit()
 {
   int arg = 3;
 
@@ -88,7 +88,7 @@ void VfTasksTest::testSubmit()
   CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, 0) == 0);
 }
 
-void VfTasksTest::testSubmitInvalidNumWorkers()
+void TasksTest::testSubmitInvalidNumWorkers()
 {
   int arg = 3;
 
@@ -98,7 +98,7 @@ void VfTasksTest::testSubmitInvalidNumWorkers()
   CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, 1) != 0);
 }
 
-void VfTasksTest::testSubmitGet()
+void TasksTest::testSubmitGet()
 {
   int arg = 3;
   int *result_ptr;
@@ -124,7 +124,7 @@ static void *loop(void *raw_args)
   return acc;
 }
 
-void VfTasksTest::submit_loop()
+void TasksTest::submit_loop()
 {
   int k;
 
@@ -138,7 +138,7 @@ void VfTasksTest::submit_loop()
   }
 }
 
-int VfTasksTest::get_loop()
+int TasksTest::get_loop()
 {
   int k;
   int acc = 0;
@@ -154,13 +154,13 @@ int VfTasksTest::get_loop()
   return acc;
 }
 
-void VfTasksTest::testSubmitLoop()
+void TasksTest::testSubmitLoop()
 {
   this->pool = vftasks_create_pool(N_PARTITIONS);
   this->submit_loop();
 }
 
-void VfTasksTest::testSubmitGetLoop()
+void TasksTest::testSubmitGetLoop()
 {
   this->pool = vftasks_create_pool(N_PARTITIONS);
   this->submit_loop();
@@ -182,4 +182,4 @@ void *nested_loop(void *raw_args)
 }
 
 // register fixture
-CPPUNIT_TEST_SUITE_REGISTRATION(VfTasksTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(TasksTest);

@@ -6,8 +6,8 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#ifndef VFTASKSTEST_H
-#define VFTASKSTEST_H
+#ifndef TASKSTEST_H
+#define TASKSTEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -22,9 +22,9 @@ typedef struct
   int stride;
 } args_t;
 
-class VfTasksTest : public CppUnit::TestFixture
+class TasksTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE(VfTasksTest);
+  CPPUNIT_TEST_SUITE(TasksTest);
 
   CPPUNIT_TEST(testCreateEmptyPool);
   CPPUNIT_TEST(testCreateInvalidPool);
@@ -39,7 +39,7 @@ class VfTasksTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testSubmitLoop);
   CPPUNIT_TEST(testSubmitGetLoop);
 
-  CPPUNIT_TEST_SUITE_END();  // VfTasksTest
+  CPPUNIT_TEST_SUITE_END();  // TasksTest
 
 public:
   void testCreateEmptyPool();
@@ -65,4 +65,4 @@ private:
   args_t *args;
 };
 
-#endif  // VFTASKSTEST_H
+#endif  // TASKSTEST_H

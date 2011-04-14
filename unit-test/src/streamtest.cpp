@@ -6,7 +6,7 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#include "VfStreamTest.h"
+#include "streamtest.h"
 
 #include <limits>   // for numeric_limits
 #include <cmath>    // for fabs
@@ -61,50 +61,50 @@ static void resumeReader(vftasks_rport_t *rport)
 
 
 // register fixture
-CPPUNIT_TEST_SUITE_REGISTRATION(VfStreamTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(StreamTest);
 
 
-void VfStreamTest::increaseWriterSuspendCount()
+void StreamTest::increaseWriterSuspendCount()
 {
   ++this->writerSuspendCount;
 }
 
-int VfStreamTest::getWriterSuspendCount()
+int StreamTest::getWriterSuspendCount()
 {
   return this->writerSuspendCount;
 }
 
-void VfStreamTest::increaseWriterResumeCount()
+void StreamTest::increaseWriterResumeCount()
 {
   ++this->writerResumeCount;
 }
 
-int VfStreamTest::getWriterResumeCount()
+int StreamTest::getWriterResumeCount()
 {
   return this->writerResumeCount;
 }
 
-void VfStreamTest::increaseReaderSuspendCount()
+void StreamTest::increaseReaderSuspendCount()
 {
   ++this->readerSuspendCount;
 }
 
-int VfStreamTest::getReaderSuspendCount()
+int StreamTest::getReaderSuspendCount()
 {
   return this->readerSuspendCount;
 }
 
-void VfStreamTest::increaseReaderResumeCount()
+void StreamTest::increaseReaderResumeCount()
 {
   ++this->readerResumeCount;
 }
 
-int VfStreamTest::getReaderResumeCount()
+int StreamTest::getReaderResumeCount()
 {
   return this->readerResumeCount;
 }
 
-void VfStreamTest::setUp()
+void StreamTest::setUp()
 {
   // allocate space for memory manager
   this->mem_mgr = (vftasks_malloc_t *)malloc(sizeof(vftasks_malloc_t));
@@ -132,7 +132,7 @@ void VfStreamTest::setUp()
   this->readerResumeCount = 0;
 }
 
-void VfStreamTest::tearDown()
+void StreamTest::tearDown()
 {
   // destroy ports and channel
   if (this->wport != NULL)
@@ -150,7 +150,7 @@ void VfStreamTest::tearDown()
   if (this->mem_mgr != NULL) free(this->mem_mgr);
 }
 
-void VfStreamTest::testCreation()
+void StreamTest::testCreation()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -163,28 +163,28 @@ void VfStreamTest::testCreation()
   CPPUNIT_ASSERT(vftasks_chan_of_rport(this->rport) == this->chan);
 }
 
-void VfStreamTest::testCreatingTokenlessChannel()
+void StreamTest::testCreatingTokenlessChannel()
 {
   // try to create channel and verify that it failed
   this->chan = vftasks_create_chan(0, 8, this->mem_mgr, this->mem_mgr);
   CPPUNIT_ASSERT(this->chan == NULL);
 }
 
-void VfStreamTest::testCreatingChannelWithNegativeNumberOfTokens()
+void StreamTest::testCreatingChannelWithNegativeNumberOfTokens()
 {
   // try to create channel and verify that it failed
   this->chan = vftasks_create_chan(-1, 8, this->mem_mgr, this->mem_mgr);
   CPPUNIT_ASSERT(this->chan == NULL);
 }
 
-void VfStreamTest::testCreatingChannelWithZeroSizeTokens()
+void StreamTest::testCreatingChannelWithZeroSizeTokens()
 {
   // try to create channel and verify that it failed
   this->chan = vftasks_create_chan(16, 0, this->mem_mgr, this->mem_mgr);
   CPPUNIT_ASSERT(this->chan == NULL);
 }
 
-void VfStreamTest::testRoundingUpTokenSize()
+void StreamTest::testRoundingUpTokenSize()
 {
   CREATE_CHAN(16, 51);
 
@@ -192,7 +192,7 @@ void VfStreamTest::testRoundingUpTokenSize()
   CPPUNIT_ASSERT(vftasks_get_token_size(this->chan) == 64);
 }
 
-void VfStreamTest::testConnectingMultipleWritePorts()
+void StreamTest::testConnectingMultipleWritePorts()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -200,7 +200,7 @@ void VfStreamTest::testConnectingMultipleWritePorts()
   CPPUNIT_ASSERT(vftasks_create_write_port(this->chan, this->mem_mgr) == NULL);
 }
 
-void VfStreamTest::testConnectingMultipleReadPorts()
+void StreamTest::testConnectingMultipleReadPorts()
 {
   CREATE_CHAN(16, 8) WITH_RPORT;
 
@@ -208,7 +208,7 @@ void VfStreamTest::testConnectingMultipleReadPorts()
   CPPUNIT_ASSERT(vftasks_create_read_port(this->chan, this->mem_mgr) == NULL);
 }
 
-void VfStreamTest::testWritePortRenewal()
+void StreamTest::testWritePortRenewal()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -220,7 +220,7 @@ void VfStreamTest::testWritePortRenewal()
   CPPUNIT_ASSERT(this->wport != NULL);
 }
 
-void VfStreamTest::testReadPortRenewal()
+void StreamTest::testReadPortRenewal()
 {
   CREATE_CHAN(16, 8) WITH_RPORT;
 
@@ -232,7 +232,7 @@ void VfStreamTest::testReadPortRenewal()
   CPPUNIT_ASSERT(this->rport != NULL);
 }
 
-void VfStreamTest::testInitialLowWaterMark()
+void StreamTest::testInitialLowWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -240,7 +240,7 @@ void VfStreamTest::testInitialLowWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingLowWaterMark()
+void StreamTest::testSettingLowWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -249,7 +249,7 @@ void VfStreamTest::testSettingLowWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 7);
 }
 
-void VfStreamTest::testMinimizingLowWaterMark()
+void StreamTest::testMinimizingLowWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -260,7 +260,7 @@ void VfStreamTest::testMinimizingLowWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingLowWaterMarkTooLow()
+void StreamTest::testSettingLowWaterMarkTooLow()
 {
   CREATE_CHAN(16, 8);
 
@@ -269,7 +269,7 @@ void VfStreamTest::testSettingLowWaterMarkTooLow()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingLowWaterMarkWayTooLow()
+void StreamTest::testSettingLowWaterMarkWayTooLow()
 {
   CREATE_CHAN(16, 8);
 
@@ -278,7 +278,7 @@ void VfStreamTest::testSettingLowWaterMarkWayTooLow()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testMaximizingLowWaterMark()
+void StreamTest::testMaximizingLowWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -287,7 +287,7 @@ void VfStreamTest::testMaximizingLowWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 16);
 }
 
-void VfStreamTest::testSettingLowWaterMarkTooHigh()
+void StreamTest::testSettingLowWaterMarkTooHigh()
 {
   CREATE_CHAN(16, 8);
 
@@ -296,7 +296,7 @@ void VfStreamTest::testSettingLowWaterMarkTooHigh()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingLowWaterMarkWayTooHigh()
+void StreamTest::testSettingLowWaterMarkWayTooHigh()
 {
   CREATE_CHAN(16, 8);
 
@@ -305,7 +305,7 @@ void VfStreamTest::testSettingLowWaterMarkWayTooHigh()
   CPPUNIT_ASSERT(vftasks_get_min_room(this->chan) == 1);
 }
 
-void VfStreamTest::testInitialHighWaterMark()
+void StreamTest::testInitialHighWaterMark()
 {
   CREATE_CHAN(16,  8);
 
@@ -313,7 +313,7 @@ void VfStreamTest::testInitialHighWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingHighWaterMark()
+void StreamTest::testSettingHighWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -322,7 +322,7 @@ void VfStreamTest::testSettingHighWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 7);
 }
 
-void VfStreamTest::testMinimizingHighWaterMark()
+void StreamTest::testMinimizingHighWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -333,7 +333,7 @@ void VfStreamTest::testMinimizingHighWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingHighWaterMarkTooLow()
+void StreamTest::testSettingHighWaterMarkTooLow()
 {
   CREATE_CHAN(16, 8);
 
@@ -342,7 +342,7 @@ void VfStreamTest::testSettingHighWaterMarkTooLow()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingHighWaterMarkWayTooLow()
+void StreamTest::testSettingHighWaterMarkWayTooLow()
 {
   CREATE_CHAN(16, 8);
 
@@ -351,7 +351,7 @@ void VfStreamTest::testSettingHighWaterMarkWayTooLow()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testMaximizingHighWaterMark()
+void StreamTest::testMaximizingHighWaterMark()
 {
   CREATE_CHAN(16, 8);
 
@@ -360,7 +360,7 @@ void VfStreamTest::testMaximizingHighWaterMark()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 16);
 }
 
-void VfStreamTest::testSettingHighWaterMarkTooHigh()
+void StreamTest::testSettingHighWaterMarkTooHigh()
 {
   CREATE_CHAN(16, 8);
 
@@ -369,7 +369,7 @@ void VfStreamTest::testSettingHighWaterMarkTooHigh()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testSettingHighWaterMarkWayTooHigh()
+void StreamTest::testSettingHighWaterMarkWayTooHigh()
 {
   CREATE_CHAN(16, 8);
 
@@ -378,7 +378,7 @@ void VfStreamTest::testSettingHighWaterMarkWayTooHigh()
   CPPUNIT_ASSERT(vftasks_get_min_data(this->chan) == 1);
 }
 
-void VfStreamTest::testInitialApplicationSpecificData()
+void StreamTest::testInitialApplicationSpecificData()
 {
   CREATE_CHAN(16, 8);
 
@@ -386,7 +386,7 @@ void VfStreamTest::testInitialApplicationSpecificData()
   CPPUNIT_ASSERT(vftasks_get_chan_info(this->chan) == NULL);
 }
 
-void VfStreamTest::testSettingApplicationSpecificData()
+void StreamTest::testSettingApplicationSpecificData()
 {
   CREATE_CHAN(16, 8);
 
@@ -395,7 +395,7 @@ void VfStreamTest::testSettingApplicationSpecificData()
   CPPUNIT_ASSERT(vftasks_get_chan_info(this->chan) == this);
 }
 
-void VfStreamTest::testRetrievingChannelFromWritePort()
+void StreamTest::testRetrievingChannelFromWritePort()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -403,7 +403,7 @@ void VfStreamTest::testRetrievingChannelFromWritePort()
   CPPUNIT_ASSERT(vftasks_chan_of_wport(this->wport) == this->chan);
 }
 
-void VfStreamTest::testRetrievingChannelFromReadPort()
+void StreamTest::testRetrievingChannelFromReadPort()
 {
   CREATE_CHAN(16, 8) WITH_RPORT;
 
@@ -411,7 +411,7 @@ void VfStreamTest::testRetrievingChannelFromReadPort()
   CPPUNIT_ASSERT(vftasks_chan_of_rport(this->rport) == this->chan);
 }
 
-void VfStreamTest::testInitialRoomAvailable()
+void StreamTest::testInitialRoomAvailable()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -419,7 +419,7 @@ void VfStreamTest::testInitialRoomAvailable()
   CPPUNIT_ASSERT(vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testRoomAvailableAfterWriting()
+void StreamTest::testRoomAvailableAfterWriting()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -432,7 +432,7 @@ void VfStreamTest::testRoomAvailableAfterWriting()
   CPPUNIT_ASSERT(vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testRoomAvailableAfterFilling()
+void StreamTest::testRoomAvailableAfterFilling()
 {
   CREATE_CHAN(16, 8) WITH_WPORT;
 
@@ -443,7 +443,7 @@ void VfStreamTest::testRoomAvailableAfterFilling()
   CPPUNIT_ASSERT(!vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testRoomAvailableAfterWritingAndReading()
+void StreamTest::testRoomAvailableAfterWritingAndReading()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -460,7 +460,7 @@ void VfStreamTest::testRoomAvailableAfterWritingAndReading()
   CPPUNIT_ASSERT(vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testRoomAvailableAfterFillingAndReading()
+void StreamTest::testRoomAvailableAfterFillingAndReading()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -475,7 +475,7 @@ void VfStreamTest::testRoomAvailableAfterFillingAndReading()
   CPPUNIT_ASSERT(vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testRoomAvailableAfterWritingAndEmptying()
+void StreamTest::testRoomAvailableAfterWritingAndEmptying()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -494,7 +494,7 @@ void VfStreamTest::testRoomAvailableAfterWritingAndEmptying()
 }
 
 
-void VfStreamTest::testRoomAvailableAfterFillingAndEmptying()
+void StreamTest::testRoomAvailableAfterFillingAndEmptying()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -508,7 +508,7 @@ void VfStreamTest::testRoomAvailableAfterFillingAndEmptying()
   CPPUNIT_ASSERT(vftasks_room_available(this->wport));
 }
 
-void VfStreamTest::testInitialDataAvailable()
+void StreamTest::testInitialDataAvailable()
 {
   CREATE_CHAN(16, 8) WITH_RPORT;
 
@@ -517,7 +517,7 @@ void VfStreamTest::testInitialDataAvailable()
 }
 
 
-void VfStreamTest::testDataAvailableAfterWriting()
+void StreamTest::testDataAvailableAfterWriting()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -530,7 +530,7 @@ void VfStreamTest::testDataAvailableAfterWriting()
   CPPUNIT_ASSERT(vftasks_data_available(this->rport));
 }
 
-void VfStreamTest::testDataAvailableAfterFilling()
+void StreamTest::testDataAvailableAfterFilling()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -541,7 +541,7 @@ void VfStreamTest::testDataAvailableAfterFilling()
   CPPUNIT_ASSERT(vftasks_data_available(this->rport));
 }
 
-void VfStreamTest::testDataAvailableAfterWritingAndReading()
+void StreamTest::testDataAvailableAfterWritingAndReading()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -558,7 +558,7 @@ void VfStreamTest::testDataAvailableAfterWritingAndReading()
   CPPUNIT_ASSERT(vftasks_data_available(this->rport));
 }
 
-void VfStreamTest::testDataAvailableAfterFillingAndReading()
+void StreamTest::testDataAvailableAfterFillingAndReading()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -573,7 +573,7 @@ void VfStreamTest::testDataAvailableAfterFillingAndReading()
   CPPUNIT_ASSERT(vftasks_data_available(this->rport));
 }
 
-void VfStreamTest::testDataAvailableAfterWritingAndEmptying()
+void StreamTest::testDataAvailableAfterWritingAndEmptying()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -592,7 +592,7 @@ void VfStreamTest::testDataAvailableAfterWritingAndEmptying()
 }
 
 
-void VfStreamTest::testDataAvailableAfterFillingAndEmptying()
+void StreamTest::testDataAvailableAfterFillingAndEmptying()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -606,7 +606,7 @@ void VfStreamTest::testDataAvailableAfterFillingAndEmptying()
   CPPUNIT_ASSERT(!vftasks_data_available(this->rport));
 }
 
-void VfStreamTest::testAcquiringRoomInitially()
+void StreamTest::testAcquiringRoomInitially()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -620,7 +620,7 @@ void VfStreamTest::testAcquiringRoomInitially()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringRoomAfterWriting()
+void StreamTest::testAcquiringRoomAfterWriting()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -639,7 +639,7 @@ void VfStreamTest::testAcquiringRoomAfterWriting()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringRoomAfterFilling()
+void StreamTest::testAcquiringRoomAfterFilling()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -653,7 +653,7 @@ void VfStreamTest::testAcquiringRoomAfterFilling()
   CPPUNIT_ASSERT(token == NULL);
 }
 
-void VfStreamTest::testAcquiringRoomAfterWritingAndReading()
+void StreamTest::testAcquiringRoomAfterWritingAndReading()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -676,7 +676,7 @@ void VfStreamTest::testAcquiringRoomAfterWritingAndReading()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringRoomAfterFillingAndReading()
+void StreamTest::testAcquiringRoomAfterFillingAndReading()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -697,7 +697,7 @@ void VfStreamTest::testAcquiringRoomAfterFillingAndReading()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringRoomAfterWritingAndEmptying()
+void StreamTest::testAcquiringRoomAfterWritingAndEmptying()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -721,7 +721,7 @@ void VfStreamTest::testAcquiringRoomAfterWritingAndEmptying()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringRoomAfterFillingAndEmptying()
+void StreamTest::testAcquiringRoomAfterFillingAndEmptying()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -741,7 +741,7 @@ void VfStreamTest::testAcquiringRoomAfterFillingAndEmptying()
   vftasks_release_data(this->wport, token);
 }
 
-void VfStreamTest::testAcquiringDataInitially()
+void StreamTest::testAcquiringDataInitially()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -752,7 +752,7 @@ void VfStreamTest::testAcquiringDataInitially()
   CPPUNIT_ASSERT(token == NULL);
 }
 
-void VfStreamTest::testAcquiringDataAfterWriting()
+void StreamTest::testAcquiringDataAfterWriting()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -771,7 +771,7 @@ void VfStreamTest::testAcquiringDataAfterWriting()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testAcquiringDataAfterFilling()
+void StreamTest::testAcquiringDataAfterFilling()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -788,7 +788,7 @@ void VfStreamTest::testAcquiringDataAfterFilling()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testAcquiringDataAfterWritingAndReading()
+void StreamTest::testAcquiringDataAfterWritingAndReading()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -811,7 +811,7 @@ void VfStreamTest::testAcquiringDataAfterWritingAndReading()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testAcquiringDataAfterFillingAndReading()
+void StreamTest::testAcquiringDataAfterFillingAndReading()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -832,7 +832,7 @@ void VfStreamTest::testAcquiringDataAfterFillingAndReading()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testAcquiringDataAfterWritingAndEmptying()
+void StreamTest::testAcquiringDataAfterWritingAndEmptying()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -853,7 +853,7 @@ void VfStreamTest::testAcquiringDataAfterWritingAndEmptying()
   CPPUNIT_ASSERT(token == NULL);
 }
 
-void VfStreamTest::testAcquiringDataAfterFillingAndEmptying()
+void StreamTest::testAcquiringDataAfterFillingAndEmptying()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -870,7 +870,7 @@ void VfStreamTest::testAcquiringDataAfterFillingAndEmptying()
   CPPUNIT_ASSERT(token == NULL);
 }
 
-void VfStreamTest::testSharedMemorySupport()
+void StreamTest::testSharedMemorySupport()
 {
   CREATE_CHAN(16, 8);
 
@@ -878,7 +878,7 @@ void VfStreamTest::testSharedMemorySupport()
   CPPUNIT_ASSERT(vftasks_shmem_supported(this->chan));
 }
 
-void VfStreamTest::testSharedMemoryMode()
+void StreamTest::testSharedMemoryMode()
 {
   vftasks_token_t *token;  // pointer to a token
   char *wptr;             // pointer into a room token
@@ -917,7 +917,7 @@ void VfStreamTest::testSharedMemoryMode()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testFifoBehaviorInSharedMemoryMode()
+void StreamTest::testFifoBehaviorInSharedMemoryMode()
 {
   vftasks_token_t *token;  // pointer to a token
   char *ptr;              // pointer into a token
@@ -961,7 +961,7 @@ void VfStreamTest::testFifoBehaviorInSharedMemoryMode()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testTokenReuseInSharedMemoryMode()
+void StreamTest::testTokenReuseInSharedMemoryMode()
 {
   vftasks_token_t *token;  // pointer to a token
   char *ptr;              // pointer into a token
@@ -1005,7 +1005,7 @@ void VfStreamTest::testTokenReuseInSharedMemoryMode()
   }
 }
 
-void VfStreamTest::testWindowedMode()
+void StreamTest::testWindowedMode()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1034,7 +1034,7 @@ void VfStreamTest::testWindowedMode()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testFifoBehaviorInWindowedMode()
+void StreamTest::testFifoBehaviorInWindowedMode()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1071,7 +1071,7 @@ void VfStreamTest::testFifoBehaviorInWindowedMode()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testTokenReuseInWindowedMode()
+void StreamTest::testTokenReuseInWindowedMode()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1110,7 +1110,7 @@ void VfStreamTest::testTokenReuseInWindowedMode()
   }
 }
 
-void VfStreamTest::testKahnMode()
+void StreamTest::testKahnMode()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -1121,7 +1121,7 @@ void VfStreamTest::testKahnMode()
   CPPUNIT_ASSERT(vftasks_read_int16(this->rport) == 11);
 }
 
-void VfStreamTest::testFifoBehaviorInKahnMode()
+void StreamTest::testFifoBehaviorInKahnMode()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -1144,7 +1144,7 @@ void VfStreamTest::testFifoBehaviorInKahnMode()
   CPPUNIT_ASSERT(vftasks_read_int32(this->rport) == 5);
 }
 
-void VfStreamTest::testTokenReuseInKahnMode()
+void StreamTest::testTokenReuseInKahnMode()
 {
   CREATE_CHAN(16, 8) WITH_WPORT WITH_RPORT;
 
@@ -1163,7 +1163,7 @@ void VfStreamTest::testTokenReuseInKahnMode()
     CPPUNIT_ASSERT(vftasks_read_int32(this->rport) == j);
 }
 
-void VfStreamTest::testWrappingPutOffsets()
+void StreamTest::testWrappingPutOffsets()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1186,7 +1186,7 @@ void VfStreamTest::testWrappingPutOffsets()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testWrappingGetOffsets()
+void StreamTest::testWrappingGetOffsets()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1209,7 +1209,7 @@ void VfStreamTest::testWrappingGetOffsets()
   vftasks_release_room(this->rport, token);
 }
 
-void VfStreamTest::testOverflow()
+void StreamTest::testOverflow()
 {
   vftasks_token_t *token;  // pointer to a token
 
@@ -1299,7 +1299,7 @@ static void testSuspendingWriter_suspendWriter(vftasks_wport_t *wport)
   pthread_exit(NULL);
 }
 
-void VfStreamTest::testSuspendingWriter()
+void StreamTest::testSuspendingWriter()
 {
   bool flag;  // flag
 
@@ -1348,7 +1348,7 @@ static void testResumingWriter_resumeWriter(vftasks_wport_t *wport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_wport(wport)) = true;
 }
 
-void VfStreamTest::testResumingWriter()
+void StreamTest::testResumingWriter()
 {
   bool flag;
 
@@ -1394,7 +1394,7 @@ static void testSuspendingReader_suspendReader(vftasks_rport_t *rport)
   pthread_exit(NULL);
 }
 
-void VfStreamTest::testSuspendingReader()
+void StreamTest::testSuspendingReader()
 {
   bool flag;  // flag
 
@@ -1440,7 +1440,7 @@ static void testResumingReader_resumeReader(vftasks_rport_t *rport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_rport(rport)) = true;
 }
 
-void VfStreamTest::testResumingReader()
+void StreamTest::testResumingReader()
 {
   bool flag;  // flag
 
@@ -1492,7 +1492,7 @@ static void testHittingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_wport(wport)) = true;
 }
 
-void VfStreamTest::testHittingLowWaterMark()
+void StreamTest::testHittingLowWaterMark()
 {
   bool flag;  // flag
 
@@ -1553,7 +1553,7 @@ static void testPassingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_wport(wport)) = true;
 }
 
-void VfStreamTest::testPassingLowWaterMark()
+void StreamTest::testPassingLowWaterMark()
 {
   bool flag;  // flag
 
@@ -1616,7 +1616,7 @@ static void testHittingHighWaterMark_resumeReader(vftasks_rport_t *rport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_rport(rport)) = true;
 }
 
-void VfStreamTest::testHittingHighWaterMark()
+void StreamTest::testHittingHighWaterMark()
 {
   bool flag;  // flag
 
@@ -1674,7 +1674,7 @@ static void testPassingHighWaterMark_resumeReader(vftasks_rport_t *rport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_rport(rport)) = true;
 }
 
-void VfStreamTest::testPassingHighWaterMark()
+void StreamTest::testPassingHighWaterMark()
 {
   bool flag;  // flag
 
