@@ -39,14 +39,10 @@ if (DOXYGEN)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
 endif (DOXYGEN)
 
-if (PTHREAD_LIB)
+if (PTHREAD_LIB AND CPPUNIT)
   add_subdirectory(unit-test)
   enable_testing()
-
-  if (CPPUNIT)
-    add_subdirectory(example EXCLUDE_FROM_ALL)
-  endif (CPPUNIT)
-endif (PTHREAD_LIB)
+endif (PTHREAD_LIB AND CPPUNIT)
 
 # disable the /usr/local prefix
 set(CMAKE_INSTALL_PREFIX "")

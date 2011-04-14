@@ -74,14 +74,6 @@ CppUnit version 1.12.1, and Doxygen 1.6.3
   * Build and run the unit tests:
     $ make test
 
-  * Build and run the examples:
-    - The worker thread / 2D synchronization example:
-      $ make 2d_partitioned
-      $ ./examples/2d_partitioned
-    - The streaming fifo example:
-      $ make streams
-      $ ./examples/streams
-
   * Build the html documentation:
     $ make doc
     The documentation is located under vftasks-<version>/build/doc/html/
