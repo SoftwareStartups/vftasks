@@ -339,13 +339,13 @@ int vftasks_submit(vftasks_pool_t *pool,
 
   if (task == NULL)
   {
-    abort_on_fail("vftasks_submit");
+    abort_on_fail("vftasks_submit: no task");
     return 1;
   }
 
   if (num_workers < 0)
   {
-    abort_on_fail("vftasks_submit");
+    abort_on_fail("vftasks_submit: invalid number of workers");
     return 1;
   }
 
@@ -353,14 +353,14 @@ int vftasks_submit(vftasks_pool_t *pool,
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
-    abort_on_fail("vftasks_submit");
+    abort_on_fail("vftasks_submit: no subsidiary worker chunk");
     return 1;
   }
 
   /* check that there are enough workers available to execute the task */
   if (chunk->tail + num_workers >= chunk->limit)
   {
-    abort_on_fail("vftasks_submit");
+    abort_on_fail("vftasks_submit: insufficient subsidiary workers");
     return 1;
   }
 
@@ -396,14 +396,14 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   chunk = vftasks_get_chunk(pool);
   if (chunk == NULL)
   {
-    abort_on_fail("vftasks_get");
+    abort_on_fail("vftasks_get: no subsidiary worker chunk");
     return 1;
   }
 
   /* check that there is a task being executed */
   if (chunk->head >= chunk->tail)
   {
-    abort_on_fail("vftasks_get");
+    abort_on_fail("vftasks_get: no executing task");
     return 1;
   }
 
