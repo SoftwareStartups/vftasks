@@ -24,14 +24,21 @@ typedef struct
 {
   int start;
   int stride;
-} square_args_t;
+} loop_args_t;
 
 typedef struct
 {
   int start;
   int stride;
-  int *array;
-} loop_args_t;
+  vftasks_pool_t *pool;
+} outer_loop_args_t;
+
+typedef struct
+{
+  int outer_loop_idx;
+  int start;
+  int stride;
+} inner_loop_args_t;
 
 class TasksTest : public CppUnit::TestFixture
 {
@@ -47,8 +54,15 @@ class TasksTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testSubmit);
   CPPUNIT_TEST(testSubmitInvalidNumWorkers);
   CPPUNIT_TEST(testSubmitGet);
+  CPPUNIT_TEST(testGetNoWorkers);
   CPPUNIT_TEST(testSubmitLoop);
   CPPUNIT_TEST(testSubmitGetLoop);
+  CPPUNIT_TEST(testTooManyGets);
+
+  CPPUNIT_TEST(testSubmitNestedLoop);
+  CPPUNIT_TEST(testSubmitNestedLoopInvalidSubWorkers);
+  CPPUNIT_TEST(testSubmitGetNestedLoop);
+  CPPUNIT_TEST(testSubmitGetNestedLoopInvalidSubWorkers);
 
   CPPUNIT_TEST_SUITE_END();  // TasksTest
 
@@ -63,17 +77,24 @@ public:
   void testSubmit();
   void testSubmitInvalidNumWorkers();
   void testSubmitGet();
+  void testGetNoWorkers();
   void testSubmitLoop();
   void testSubmitGetLoop();
+  void testTooManyGets();
+
   void testSubmitNestedLoop();
+  void testSubmitNestedLoopInvalidSubWorkers();
+  void testSubmitGetNestedLoop();
+  void testSubmitGetNestedLoopInvalidSubWorkers();
 
   void tearDown();
 
 private:
-  void submit_loop();
+  void submitLoop();
+  int submitNestedLoop(int numWorkers);
+  int submitGetNestedLoop(int numWorkers, int expectedResult);
 
   vftasks_pool_t *pool;  // pointer to a worker-thread pool
-  int array[ROWS];
 };
 
 #endif  // TASKSTEST_H

@@ -10,6 +10,9 @@
 
 #include <cstdlib>  // for malloc, free
 
+volatile static int array[ROWS];
+volatile static int matrix[ROWS][COLS];
+
 // a task that computes the square of an integer
 // can be used as a task without subsidiary workers
 static void *square(void *raw_args)
@@ -106,6 +109,13 @@ void TasksTest::testSubmitGet()
   CPPUNIT_ASSERT(*result_ptr == 9);
 }
 
+void TasksTest::testGetNoWorkers()
+{
+  this->pool = vftasks_create_pool(1);
+  CPPUNIT_ASSERT(vftasks_get(pool, NULL) != 0);
+}
+
+// A simple loop task.
 static void *loop(void *raw_args)
 {
   int i;
@@ -115,32 +125,31 @@ static void *loop(void *raw_args)
   *acc = 0;
 
   for (i = args->start; i < ROWS; i += args->stride)
-    args->array[i] = i;
+    array[i] = i;
 
   return NULL;
 }
 
-void TasksTest::submit_loop()
+void TasksTest::submitLoop()
 {
-  int k;
+  int i;
 
   // this is not freed intentionally, since the workers might still be running
   // when it goes out of scope
   loop_args_t *args = (loop_args_t *)calloc(N_PARTITIONS, sizeof(loop_args_t));
 
-  for (k = 0; k < N_PARTITIONS; k++)
+  for (i = 0; i < N_PARTITIONS; i++)
   {
-    args[k].start = k;
-    args[k].stride = N_PARTITIONS;
-    args[k].array = this->array;
-    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &args[k], 0) == 0);
+    args[i].start = i;
+    args[i].stride = N_PARTITIONS;
+    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &args[i], 0) == 0);
   }
 }
 
 void TasksTest::testSubmitLoop()
 {
   this->pool = vftasks_create_pool(N_PARTITIONS);
-  this->submit_loop();
+  this->submitLoop();
 }
 
 void TasksTest::testSubmitGetLoop()
@@ -149,10 +158,159 @@ void TasksTest::testSubmitGetLoop()
   int *result;
 
   this->pool = vftasks_create_pool(N_PARTITIONS);
-  this->submit_loop();
+  this->submitLoop();
 
   for (k = 0; k < N_PARTITIONS; k++)
     CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) == 0);
+}
+
+void TasksTest::testTooManyGets()
+{
+  int k;
+  int *result;
+
+  this->pool = vftasks_create_pool(N_PARTITIONS);
+  this->submitLoop();
+
+  for (k = 0; k < N_PARTITIONS; k++)
+    CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) == 0);
+
+  CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) != 0);
+}
+
+// A task-like function that contains the inner loop part of the outer loop
+// described below.
+static void *inner_loop(void *raw_args)
+{
+  int i, j;
+  inner_loop_args_t *args = (inner_loop_args_t *)raw_args;
+
+  i = args->outer_loop_idx;
+  for (j = args->start; j < COLS; j += args->stride)
+    matrix[i][j] = i*j;
+
+  return NULL;
+}
+
+// A task-like function that contains a nested loop.
+// The inner loop is called by submitting subsidiary tasks.
+static void *outer_loop(void *raw_args)
+{
+  int i, j;
+  inner_loop_args_t inner_args[N_PARTITIONS];
+  outer_loop_args_t *args = (outer_loop_args_t *) raw_args;
+  int *result = (int *)malloc(sizeof(int));
+  *result = 0;
+
+  for (i = args->start; i < ROWS; i += args->stride)
+  {
+    for (j = 0; j < N_PARTITIONS-1; j++)
+    {
+      inner_args[j].outer_loop_idx = i;
+      inner_args[j].start = j;
+      inner_args[j].stride = N_PARTITIONS;
+      vftasks_submit(args->pool, inner_loop, &inner_args[j], 0);
+    }
+
+    inner_args[j].outer_loop_idx = i;
+    inner_args[j].start = j;
+    inner_args[j].stride = N_PARTITIONS;
+    inner_loop(&inner_args[j]);
+
+    for (j = 0; j < N_PARTITIONS-1; j++)
+      *result |= vftasks_get(args->pool, NULL);
+  }
+
+  return result;
+}
+
+// Helper function to submit nested loop tasks with a variable
+// number of subsidiary workers. The vftasks_submit returncodes are OR-ed
+// so the calling test functions can assert them.
+int TasksTest::submitNestedLoop(int numWorkers)
+{
+  int i, result = 0;
+  int results[N_PARTITIONS-1];
+  outer_loop_args_t *args =
+    (outer_loop_args_t *)calloc(N_PARTITIONS, sizeof(outer_loop_args_t));
+
+  for (i = 0; i < N_PARTITIONS-1; i++)
+  {
+    args[i].start = i;
+    args[i].stride = N_PARTITIONS;
+    args[i].pool = this->pool;
+    results[i] = vftasks_submit(this->pool, outer_loop, &args[i], numWorkers);
+  }
+
+  for (i = 0; i < N_PARTITIONS-1; i++)
+    result |= results[i];
+
+  return result;
+}
+
+void TasksTest::testSubmitNestedLoop()
+{
+  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  CPPUNIT_ASSERT(submitNestedLoop(N_PARTITIONS) == 0);
+}
+
+void TasksTest::testSubmitNestedLoopInvalidSubWorkers()
+{
+  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  CPPUNIT_ASSERT(submitNestedLoop(N_PARTITIONS+1) != 0);
+}
+
+// Helper function to submit and get nested loop tasks with a variable
+// number of subsidiary workers.
+// The vftasks_get returncodes are OR-ed so the calling test functions can
+// assert them.
+// An internal assert is done on the OR-ed results from the vftasks_get calls.
+// This assert is done with the expectedResult function parameter.
+int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
+{
+  int i, result = 0;
+  int results[N_PARTITIONS-1];
+  int *result_ptr;
+  outer_loop_args_t *args =
+    (outer_loop_args_t *)calloc(N_PARTITIONS, sizeof(outer_loop_args_t));
+
+  for (i = 0; i < N_PARTITIONS-1; i++)
+  {
+    args[i].start = i;
+    args[i].stride = N_PARTITIONS;
+    args[i].pool = this->pool;
+    vftasks_submit(this->pool, outer_loop, &args[i], numWorkers);
+  }
+
+  for (i = 0; i < N_PARTITIONS-1; i++)
+  {
+    results[i] = vftasks_get(this->pool, (void **)&result_ptr);
+    result |= *result_ptr;
+  }
+
+  args[i].start = i;
+  args[i].stride = N_PARTITIONS;
+  args[i].pool = this->pool;
+  result |= *(int *)outer_loop(&args[i]);
+
+  CPPUNIT_ASSERT(result == expectedResult);
+
+  for (i = 0; i < N_PARTITIONS-1; i++)
+    result |= results[i];
+
+  return result;
+}
+
+void TasksTest::testSubmitGetNestedLoop()
+{
+  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  CPPUNIT_ASSERT(submitGetNestedLoop(N_PARTITIONS, 0) == 0);
+}
+
+void TasksTest::testSubmitGetNestedLoopInvalidSubWorkers()
+{
+  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  CPPUNIT_ASSERT(submitGetNestedLoop(N_PARTITIONS+1, 0) != 0);
 }
 
 // register fixture

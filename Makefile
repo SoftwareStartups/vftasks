@@ -19,4 +19,4 @@ clean:
 	rm -rf $(BUILDDIR)
 
 clean_all: clean
-	rm -rf $(VFSTREAMINSTALL)/*
+	rm -rf $(VFSTREAMINSTALL)/* result.xml
