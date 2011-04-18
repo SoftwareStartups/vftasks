@@ -16,11 +16,22 @@ extern "C"
 #include <vftasks.h>
 }
 
+#define ROWS 32
+#define COLS 32
+#define N_PARTITIONS 4
+
 typedef struct
 {
   int start;
   int stride;
-} args_t;
+} square_args_t;
+
+typedef struct
+{
+  int start;
+  int stride;
+  int *array;
+} loop_args_t;
 
 class TasksTest : public CppUnit::TestFixture
 {
@@ -54,15 +65,15 @@ public:
   void testSubmitGet();
   void testSubmitLoop();
   void testSubmitGetLoop();
+  void testSubmitNestedLoop();
 
   void tearDown();
 
 private:
   void submit_loop();
-  int get_loop();
 
   vftasks_pool_t *pool;  // pointer to a worker-thread pool
-  args_t *args;
+  int array[ROWS];
 };
 
 #endif  // TASKSTEST_H

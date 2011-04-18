@@ -10,10 +10,6 @@
 
 #include <cstdlib>  // for malloc, free
 
-#define X 32
-#define y 32
-#define N_PARTITIONS 4
-
 // a task that computes the square of an integer
 // can be used as a task without subsidiary workers
 static void *square(void *raw_args)
@@ -37,22 +33,19 @@ static void *square(void *raw_args)
 void TasksTest::tearDown()
 {
   if (this->pool != NULL)
-    vftasks_destroy_pool(pool);
-
-  if (this->args != NULL)
-    free(args);
+    vftasks_destroy_pool(this->pool);
 }
 
 void TasksTest::testCreateEmptyPool()
 {
-  vftasks_pool_t *pool = vftasks_create_pool(0);
-  CPPUNIT_ASSERT(pool == NULL);
+  this->pool = vftasks_create_pool(0);
+  CPPUNIT_ASSERT(this->pool == NULL);
 }
 
 void TasksTest::testCreateInvalidPool()
 {
-  vftasks_pool_t *pool = vftasks_create_pool(-1);
-  CPPUNIT_ASSERT(pool == NULL);
+  this->pool = vftasks_create_pool(-1);
+  CPPUNIT_ASSERT(this->pool == NULL);
 }
 
 void TasksTest::testCreatePool1()
@@ -64,7 +57,7 @@ void TasksTest::testCreatePool1()
 
 void TasksTest::testCreatePool4()
 {
-  vftasks_pool_t *pool = vftasks_create_pool(4);
+  this->pool = vftasks_create_pool(4);
   CPPUNIT_ASSERT(pool != NULL);
 }
 
@@ -77,15 +70,18 @@ void TasksTest::testDestroyPool()
 void TasksTest::testSubmitEmptyTask()
 {
   this->pool = vftasks_create_pool(1);
-  CPPUNIT_ASSERT(vftasks_submit(pool, NULL, NULL, 0) != 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, NULL, NULL, 0) != 0);
 }
 
 void TasksTest::testSubmit()
 {
-  int arg = 3;
+  // this is not freed intentionally, since the workers might still be running
+  // when it goes out of scope
+  int *arg = (int *)malloc(sizeof(int));
+  *arg = 3;
 
   this->pool = vftasks_create_pool(1);
-  CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, 0) == 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 0) == 0);
 }
 
 void TasksTest::testSubmitInvalidNumWorkers()
@@ -94,8 +90,8 @@ void TasksTest::testSubmitInvalidNumWorkers()
 
   this->pool = vftasks_create_pool(1);
 
-  CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, -1) != 0);
-  CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, 1) != 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, -1) != 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 1) != 0);
 }
 
 void TasksTest::testSubmitGet()
@@ -105,53 +101,40 @@ void TasksTest::testSubmitGet()
 
   this->pool = vftasks_create_pool(1);
 
-  CPPUNIT_ASSERT(vftasks_submit(pool, square, &arg, 0) == 0);
-  CPPUNIT_ASSERT(vftasks_get(pool, (void **)&result_ptr) == 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 0) == 0);
+  CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result_ptr) == 0);
   CPPUNIT_ASSERT(*result_ptr == 9);
 }
 
 static void *loop(void *raw_args)
 {
-  args_t *args = (args_t *)raw_args;
-
   int i;
   int *acc = (int *)malloc(sizeof(int));
+  loop_args_t *args = (loop_args_t *)raw_args;
+
   *acc = 0;
 
-  for (i = args->start; i < X; i += args->stride)
-    *acc += i;
+  for (i = args->start; i < ROWS; i += args->stride)
+    args->array[i] = i;
 
-  return acc;
+  return NULL;
 }
 
 void TasksTest::submit_loop()
 {
   int k;
 
-  this->args = (args_t *)calloc(N_PARTITIONS, sizeof(args_t));
+  // this is not freed intentionally, since the workers might still be running
+  // when it goes out of scope
+  loop_args_t *args = (loop_args_t *)calloc(N_PARTITIONS, sizeof(loop_args_t));
 
   for (k = 0; k < N_PARTITIONS; k++)
   {
     args[k].start = k;
     args[k].stride = N_PARTITIONS;
-    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &this->args[k], 0) == 0);
+    args[k].array = this->array;
+    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &args[k], 0) == 0);
   }
-}
-
-int TasksTest::get_loop()
-{
-  int k;
-  int acc = 0;
-  int *result;
-
-  for (k = 0; k < N_PARTITIONS; k++)
-  {
-
-    CPPUNIT_ASSERT(vftasks_get(pool, (void **)&result) == 0);
-    acc+= *result;
-  }
-
-  return acc;
 }
 
 void TasksTest::testSubmitLoop()
@@ -162,23 +145,14 @@ void TasksTest::testSubmitLoop()
 
 void TasksTest::testSubmitGetLoop()
 {
+  int k;
+  int *result;
+
   this->pool = vftasks_create_pool(N_PARTITIONS);
   this->submit_loop();
-  CPPUNIT_ASSERT(get_loop() == 496);
-}
 
-void *nested_loop(void *raw_args)
-{
-  args_t *args = (args_t *)raw_args;
-
-  int i;
-  int *acc = (int *)malloc(sizeof(int));
-  *acc = 0;
-
-  for (i = args->start; i < X; i += args->stride)
-    *acc += i;
-
-  return acc;
+  for (k = 0; k < N_PARTITIONS; k++)
+    CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) == 0);
 }
 
 // register fixture
