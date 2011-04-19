@@ -4,11 +4,11 @@ BUILDDIR = build
 
 default all: install
 
-install: $(BUILDDIR)
-	cd $(BUILDDIR) && cmake .. && make install DESTDIR=$(VFSTREAMINSTALL)
+install: | $(BUILDDIR)
+	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. && make install DESTDIR=$(VFSTREAMINSTALL)
 
-test: install
-	cd $(BUILDDIR) && make test
+test: | $(BUILDDIR)
+	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug .. && make all test
 
 release: install
 	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFSTREAMINSTALL)/vfstream.tgz

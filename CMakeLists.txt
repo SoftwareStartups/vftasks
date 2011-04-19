@@ -21,12 +21,10 @@ project(vftasks)
 
 check_c_compiler_flag(-Wall HAS_WALL_FLAG)
 check_c_compiler_flag(-pedantic HAS_PEDANTIC_FLAG)
-check_c_compiler_flag(-O3 HAS_O3_FLAG)
-
 append_if(VFTASKS_COMPILER_FLAGS HAS_WALL_FLAG -Wall)
-append_if(VFTASKS_COMPILER_FLAGS HAS_PEDANTIC -pedantic)
-append_if(VFTASKS_COMPILER_FLAGS HAS_O3_FLAG -O3)
+append_if(VFTASKS_COMPILER_FLAGS HAS_PEDANTIC_FLAG -pedantic)
 add_definitions(${VFTASKS_COMPILER_FLAGS})
+set(CMAKE_C_FLAGS_RELEASE "-DVFTASKS_ABORT_ON_FAILURE ${CMAKE_C_FLAGS_RELEASE}")
 
 find_library(PTHREAD_LIB pthread)
 find_library(CPPUNIT cppunit)
@@ -39,10 +37,10 @@ if (DOXYGEN)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
 endif (DOXYGEN)
 
-if (PTHREAD_LIB AND CPPUNIT)
+if (PTHREAD_LIB AND CPPUNIT AND CMAKE_BUILD_TYPE STREQUAL debug)
   add_subdirectory(unit-test)
   enable_testing()
-endif (PTHREAD_LIB AND CPPUNIT)
+endif (PTHREAD_LIB AND CPPUNIT AND CMAKE_BUILD_TYPE STREQUAL debug)
 
 # disable the /usr/local prefix
 set(CMAKE_INSTALL_PREFIX "")

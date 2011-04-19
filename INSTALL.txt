@@ -63,16 +63,15 @@ CppUnit version 1.12.1, and Doxygen 1.6.3
 4.1 Debian/Ubuntu
 -----------------
 
-  * Configure the build:
-    cmake ..
-
   * Build and install the library and headers:
-    make install DESTDIR=<PATH_TO_INSTALL_DIR>
+    $ cmake -DCMAKE_BUILD_TYPE=debug ..
+    $ make install DESTDIR=<PATH_TO_INSTALL_DIR>
     The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
     The include files are located in <PATH_TO_INSTALL_DIR>/include
 
   * Build and run the unit tests:
-    $ make test
+    $ cmake -DCMAKE_BUILD_TYPE=debug ..
+    $ make all test
 
   * Build the html documentation:
     $ make doc

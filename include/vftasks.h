@@ -250,8 +250,6 @@ typedef int bool_t;
 #define true 1
 #endif
 
-/*#define VFTASKS_ABORT_ON_FAILURE*/
-
 
 /* ***************************************************************************
  * Worker thread pools

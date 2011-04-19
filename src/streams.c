@@ -60,8 +60,7 @@
 #endif
 
 
-#define MAX(X, Y)  (((X) > (Y)) ? (X) : (Y))  /** calculates the maximum of X
-                                                 and Y */
+#define MAX(X,Y)  (((X) > (Y)) ? (X) : (Y))
 
 /* ***************************************************************************
  * Types
@@ -84,8 +83,8 @@ struct vftasks_param_s
 {
   int min_data;           /** resume reader when #data tokens >= min_data */
   int min_room;           /** resume writer when #room tokens >= min_room */
-  vftasks_token_t *limit;  /** points to first byte beyond token buffer    */
-  vftasks_token_t *base;   /** points to start of token buffer             */
+  vftasks_token_t *limit; /** points to first byte beyond token buffer    */
+  vftasks_token_t *base;  /** points to start of token buffer             */
 };
 
 /**
@@ -104,11 +103,11 @@ struct vftasks_chan_s
   vftasks_state_t state;                 /** channel state                     */
   vftasks_param_t param;                 /** channel parameters                */
   vftasks_rport_t *rport;                /** points to read port connected to
-					   this channel                      */
+                                             this channel                      */
   vftasks_wport_t *wport;                /** points to write port connected to
-                                           this channel                      */
-  void *info;                           /** points to additional,
-                                           application-specific data         */
+                                             this channel                      */
+  void *info;                            /** points to additional,
+                                             application-specific data         */
   vftasks_writer_hook_t suspend_writer;  /** suspend-writer hook               */
   vftasks_writer_hook_t resume_writer;   /** resume-writer hook                */
   vftasks_reader_hook_t suspend_reader;  /** suspend-reader hook               */
@@ -120,12 +119,12 @@ struct vftasks_chan_s
 struct vftasks_wport_s
 {
   vftasks_token_t *room;               /** points beyond tail, but not further
-                                         than head                           */
+                                           than head                           */
   vftasks_state_t cached_state;        /** cached channel state                */
   vftasks_param_t param;               /** channel parameters                  */
   vftasks_token_t *wakeup_zone_start;  /** start of wake-up zone: wake reader
-				         if chan->tail points into wake-up
-                                         zone                                */
+                                           if chan->tail points into wake-up
+                                           zone                                */
   vftasks_token_t *wakeup_zone_end;    /** end of wake-up zone                 */
   vftasks_chan_t *chan;                /** points to channel                   */
 };
@@ -135,12 +134,12 @@ struct vftasks_wport_s
 struct vftasks_rport_s
 {
   vftasks_token_t *data;               /** points beyond head, but not further
-                                         than tail                           */
+                                           than tail                           */
   vftasks_state_t cached_state;        /** cached channel state                */
   vftasks_param_t param;               /** channel parameters                  */
   vftasks_token_t *wakeup_zone_start;  /** start of wake-up zone: wake writer
-				         if chan->tail points into wake-up
-                                         zone                                */
+                                           if chan->tail points into wake-up
+                                           zone                                */
   vftasks_token_t *wakeup_zone_end;    /** end of wake-up zone                 */
   vftasks_chan_t *chan;                /** points to channel                   */
 };
@@ -169,15 +168,15 @@ static void vftasks_default_reader_hook(vftasks_rport_t *rport)
 /** create channel
  */
 vftasks_chan_t *vftasks_create_chan(int num_tokens,
-                                  size_t token_size,
-                                  vftasks_malloc_t *ctl_space,
-                                  vftasks_malloc_t *buf_space)
+                                    size_t token_size,
+                                    vftasks_malloc_t *ctl_space,
+                                    vftasks_malloc_t *buf_space)
 {
   int chan_size;              /* channel size (== #tokens + 1) */
   size_t overflow_size;       /* overflow size                 */
   char *raw_buf;              /* the raw buffer                */
-  vftasks_token_t *token_buf;  /* the token buffer              */
-  vftasks_chan_t *chan;        /* pointer to the channel        */
+  vftasks_token_t *token_buf; /* the token buffer              */
+  vftasks_chan_t *chan;       /* pointer to the channel        */
 
   /* check #tokens and token size */
   if (num_tokens <= 0)
@@ -226,7 +225,7 @@ vftasks_chan_t *vftasks_create_chan(int num_tokens,
   /* fill token buffer */
   {
     char* raw_ix;              /* index into raw buffer   */
-    vftasks_token_t* token_ix;  /* index into token buffer */
+    vftasks_token_t* token_ix; /* index into token buffer */
 
     /* iterate through buffers */
     raw_ix = raw_buf;
@@ -275,7 +274,7 @@ vftasks_chan_t *vftasks_create_chan(int num_tokens,
 /** create write port
  */
 vftasks_wport_t *vftasks_create_write_port(vftasks_chan_t *chan,
-                                         vftasks_malloc_t *port_space)
+                                           vftasks_malloc_t *port_space)
 {
   vftasks_wport_t *wport;  /* pointer to the port */
 
@@ -310,7 +309,7 @@ vftasks_wport_t *vftasks_create_write_port(vftasks_chan_t *chan,
 /** create read port
  */
 vftasks_rport_t *vftasks_create_read_port(vftasks_chan_t *chan,
-                                        vftasks_malloc_t *port_space)
+                                          vftasks_malloc_t *port_space)
 {
   vftasks_rport_t *rport;  /* pointer to the port */
 
@@ -345,8 +344,8 @@ vftasks_rport_t *vftasks_create_read_port(vftasks_chan_t *chan,
 /** destroy channel
  */
 void vftasks_destroy_chan(vftasks_chan_t *chan,
-                         vftasks_malloc_t *ctl_space,
-                         vftasks_malloc_t *buf_space)
+                          vftasks_malloc_t *ctl_space,
+                          vftasks_malloc_t *buf_space)
 {
   /* deallocate raw buffer */
   buf_space->free(chan->param.base->token_base);
@@ -361,7 +360,7 @@ void vftasks_destroy_chan(vftasks_chan_t *chan,
 /** destroy write port
  */
 void vftasks_destroy_write_port(vftasks_wport_t *wport,
-                               vftasks_malloc_t *port_space)
+                                vftasks_malloc_t *port_space)
 {
   /* disconnect port from channel */
   wport->chan->wport = NULL;
@@ -373,7 +372,7 @@ void vftasks_destroy_write_port(vftasks_wport_t *wport,
 /** destroy read port
  */
 void vftasks_destroy_read_port(vftasks_rport_t *rport,
-                              vftasks_malloc_t *port_space)
+                               vftasks_malloc_t *port_space)
 {
   /* disconnect port from channel */
   rport->chan->rport = NULL;
@@ -391,10 +390,10 @@ void vftasks_destroy_read_port(vftasks_rport_t *rport,
 /** install hooks
  */
 void vftasks_install_chan_hooks(vftasks_chan_t *chan,
-                               vftasks_writer_hook_t suspend_writer,
-                               vftasks_writer_hook_t resume_writer,
-                               vftasks_reader_hook_t suspend_reader,
-                               vftasks_reader_hook_t resume_reader)
+                                vftasks_writer_hook_t suspend_writer,
+                                vftasks_writer_hook_t resume_writer,
+                                vftasks_reader_hook_t suspend_reader,
+                                vftasks_reader_hook_t resume_reader)
 {
   /* update hooks */
   chan->suspend_writer = suspend_writer;
@@ -412,7 +411,7 @@ void vftasks_install_chan_hooks(vftasks_chan_t *chan,
 int vftasks_set_min_room(vftasks_chan_t *chan, int min_room)
 {
   vftasks_param_t *param;  /* pointer to the channel parameters */
-  int chan_size;            /* channel size (== #tokens + 1)     */
+  int chan_size;           /* channel size (== #tokens + 1)     */
 
   /* retrieve parameter pointer */
   param = &chan->param;
@@ -450,7 +449,7 @@ int vftasks_get_min_room(vftasks_chan_t *chan)
  */
 int vftasks_set_min_data(vftasks_chan_t *chan, int min_data)
 {
-  vftasks_param_t *param;  /* pointer to the channel parameters */
+  vftasks_param_t *param; /* pointer to the channel parameters */
   int chan_size;          /* channel size (== #tokens + 1)     */
 
   /* retrieve parameter pointer */
@@ -522,7 +521,7 @@ int vftasks_get_num_tokens(vftasks_chan_t *chan)
 {
   int chan_size;  /* channel size (== #tokens + 1) */
 
-  /* retrieve the channel size */ 
+  /* retrieve the channel size */
   chan_size = chan->param.limit - chan->param.base;
 
   /* return #tokens */
@@ -564,8 +563,7 @@ vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport)
  */
 bool_t vftasks_room_available(vftasks_wport_t *wport)
 {
-  vftasks_token_t *new_room;  /* new room pointer, if room would be acquired now
-                              */
+  vftasks_token_t *new_room;  /* new room pointer, if room would be acquired now */
 
   /* determine new room pointer; if it is out of bounds, wrap it */
   new_room = wport->room + 1;
@@ -659,8 +657,8 @@ __inline__ vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
       vftasks_chan_t *chan;          /* pointer to the channel                */
       vftasks_token_t *room;         /* room pointer                          */
       vftasks_token_t *wakeup_mark;  /* writer resumes when the head hits the
-                                       wake-up mark                          */
-      int wrap;                     /* overflow                              */
+                                        wake-up mark                          */
+      int wrap;                      /* overflow                              */
 
       /* retrieve the channel and room pointers */
       chan = wport->chan;
@@ -724,7 +722,7 @@ __inline__ void vftasks_release_data(vftasks_wport_t *wport,
 
     /* check wake-up zone */
     if (wakeup_zone_start != NULL)
-    {      
+    {
       vftasks_token_t *wakeup_zone_end;    /* end of wake-up zone   */
 
       /* retrieve end of wake-up zone */
@@ -797,8 +795,8 @@ __inline__ vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
       vftasks_chan_t *chan;          /* pointer to the channel                */
       vftasks_token_t *data;         /* data pointer                          */
       vftasks_token_t *wakeup_mark;  /* reader resumes when the tail hits the
-                                       wake-up mark                          */
-      int wrap;                     /* overflow                              */
+                                        wake-up mark                          */
+      int wrap;                      /* overflow                              */
 
       /* retrieve the channel and data pointers */
       chan = rport->chan;
@@ -830,7 +828,7 @@ __inline__ vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
 /** release room
  */
 __inline__ void vftasks_release_room(vftasks_rport_t *rport,
-                                    vftasks_token_t *token)
+                                     vftasks_token_t *token)
 {
   vftasks_chan_t *chan;       /* pointer to the channel   */
   vftasks_token_t* head;      /* the current head pointer */
@@ -859,7 +857,7 @@ __inline__ void vftasks_release_room(vftasks_rport_t *rport,
     wakeup_zone_start = rport->wakeup_zone_start;
 
     /* check wake-up zone */
-    if (wakeup_zone_start != NULL) 
+    if (wakeup_zone_start != NULL)
     {
       vftasks_token_t *wakeup_zone_end;  /* end of wake-up zone */
 
@@ -895,7 +893,7 @@ void *vftasks_get_memaddr(vftasks_token_t *token)
 
 /** put data
  */
-#define VFTASKS_PUT(TYPE, TOKEN, OFFSET, DATA)    \
+#define VFTASKS_PUT(TYPE, TOKEN, OFFSET, DATA)   \
   /* wrap offset */                              \
   OFFSET &= TOKEN->token_size - 1;               \
                                                  \
@@ -904,7 +902,7 @@ void *vftasks_get_memaddr(vftasks_token_t *token)
 
 /** get data
  */
-#define VFTASKS_GET(TYPE, TOKEN, OFFSET)         \
+#define VFTASKS_GET(TYPE, TOKEN, OFFSET)        \
   /* wrap offset */                             \
   OFFSET &= TOKEN->token_size - 1;              \
                                                 \
@@ -1153,7 +1151,7 @@ void vftasks_write_ptr(vftasks_wport_t *wport, void *data)
  */
 int8_t vftasks_read_int8(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   int8_t data;            /* the data   */
 
   /* read data */
@@ -1169,7 +1167,7 @@ int8_t vftasks_read_int8(vftasks_rport_t *rport)
  */
 int16_t vftasks_read_int16(vftasks_rport_t *rport)
 {
-  vftasks_token_t* token;  /* pointer to data token */
+  vftasks_token_t* token; /* pointer to data token */
   int16_t data;           /* the data   */
 
   /* read data */
@@ -1185,7 +1183,7 @@ int16_t vftasks_read_int16(vftasks_rport_t *rport)
  */
 int32_t vftasks_read_int32(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   int32_t data;           /* the data   */
 
   /* read data */
@@ -1201,7 +1199,7 @@ int32_t vftasks_read_int32(vftasks_rport_t *rport)
  */
 int64_t vftasks_read_int64(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   int64_t data;           /* the data   */
 
   /* read data */
@@ -1217,7 +1215,7 @@ int64_t vftasks_read_int64(vftasks_rport_t *rport)
  */
 float vftasks_read_float(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   float data;             /* the data   */
 
   /* read data */
@@ -1233,7 +1231,7 @@ float vftasks_read_float(vftasks_rport_t *rport)
  */
 double vftasks_read_double(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   double data;            /* the data   */
 
   /* read data */
@@ -1249,7 +1247,7 @@ double vftasks_read_double(vftasks_rport_t *rport)
  */
 void *vftasks_read_ptr(vftasks_rport_t *rport)
 {
-  vftasks_token_t *token;  /* pointer to data token */
+  vftasks_token_t *token; /* pointer to data token */
   void* data;             /* the data   */
 
   /* read data */
