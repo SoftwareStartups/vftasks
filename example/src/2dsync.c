@@ -16,12 +16,14 @@
  */
 
 #include <stdio.h>
+
 #include <vftasks.h>
 
 #define M 1024
 #define N 1024
+#define N_PARTITIONS 4
 
-int a[M][N];
+volatile int a[M][N];
 vftasks_pool_t *pool;
 vftasks_2d_sync_mgr_t *sync_mgr;
 
@@ -64,28 +66,29 @@ void *task(void *raw_args)
 
 void go()
 {
-#define K 4 /* divide the loop in 4 partitions */
-
   int k;
-  task_t args[K];
+
+  /* be sure to put the arguments on the heap as soon as the function submitting the
+     tasks returns before vftasks_get is called on the workers */
+  task_t args[N_PARTITIONS];
 
   sync_mgr = vftasks_create_2d_sync_mgr(M, N, 1, -1);
 
   /* start the workers */
-  for (k = 1; k < K; k++)
+  for (k = 0; k < N_PARTITIONS-1; k++)
   {
     args[k].start = k;
-    args[k].stride = K;
+    args[k].stride = N_PARTITIONS;
     vftasks_submit(pool, task, &args[k], 0);
   }
 
   /* keep main thread busy by keeping part of the work in there */
-  args[0].start = 0;
-  args[0].stride = K;
-  task(&args[0]);
+  args[k].start = k;
+  args[k].stride = N_PARTITIONS;
+  task(&args[k]);
 
   /* wait for the workers to finish */
-  for (k = 1; k < K; k++)
+  for (k = 0; k < N_PARTITIONS-1; k++)
   {
     vftasks_get(pool, NULL);
   }
@@ -111,7 +114,8 @@ int test()
 
 int main()
 {
-  pool = vftasks_create_pool(3);
+  /* one task is executed by the main thread */
+  pool = vftasks_create_pool(N_PARTITIONS-1);
 
   go();
 
