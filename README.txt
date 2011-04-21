@@ -25,7 +25,8 @@ Documentation and Support
 =========================
 
   Examples on how to use vfTasks APIs are located in example/src.
-  See http://www.vectorfabrics.com/content/products/vftasks for the example documentation.
+  See http://www.vectorfabrics.com/content/products/vftasks for the example documentation
+  or example/doc for offline documentation.
 
 
 Copyright

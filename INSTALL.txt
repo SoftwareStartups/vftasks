@@ -64,7 +64,7 @@ CppUnit version 1.12.1, and Doxygen 1.6.3
 -----------------
 
   * Build and install the library and headers:
-    $ cmake -DCMAKE_BUILD_TYPE=debug ..
+    $ cmake -DCMAKE_BUILD_TYPE=release ..
     $ make install DESTDIR=<PATH_TO_INSTALL_DIR>
     The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
     The include files are located in <PATH_TO_INSTALL_DIR>/include
