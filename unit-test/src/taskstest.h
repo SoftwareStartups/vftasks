@@ -16,30 +16,6 @@ extern "C"
 #include <vftasks.h>
 }
 
-#define ROWS 32
-#define COLS 32
-#define N_PARTITIONS 4
-
-typedef struct
-{
-  int start;
-  int stride;
-} loop_args_t;
-
-typedef struct
-{
-  int start;
-  int stride;
-  vftasks_pool_t *pool;
-} outer_loop_args_t;
-
-typedef struct
-{
-  int outer_loop_idx;
-  int start;
-  int stride;
-} inner_loop_args_t;
-
 class TasksTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(TasksTest);

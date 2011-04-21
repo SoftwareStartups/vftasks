@@ -10,6 +10,30 @@
 
 #include <cstdlib>  // for malloc, free
 
+#define ROWS 32
+#define COLS 32
+#define N_PARTITIONS 4
+
+typedef struct
+{
+  int start;
+  int stride;
+} loop_args_t;
+
+typedef struct
+{
+  int start;
+  int stride;
+  vftasks_pool_t *pool;
+} outer_loop_args_t;
+
+typedef struct
+{
+  int outer_loop_idx;
+  int start;
+  int stride;
+} inner_loop_args_t;
+
 volatile static int array[ROWS];
 volatile static int matrix[ROWS][COLS];
 
