@@ -25,8 +25,10 @@ class SyncTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testCreateManager);
   CPPUNIT_TEST(testCreateManagerBoundaries);
 
-  CPPUNIT_TEST(testPositiveVertical);
-  CPPUNIT_TEST(testPositiveHorizontal);
+  CPPUNIT_TEST(testVertical);
+  CPPUNIT_TEST(testHorizontal);
+  CPPUNIT_TEST(testDiagonal);
+  CPPUNIT_TEST(testBorderCrossing);
 
   CPPUNIT_TEST_SUITE_END(); // SyncTest
 
@@ -34,14 +36,17 @@ public:
   void testCreateManager();
   void testCreateManagerBoundaries();
 
-  void testPositiveVertical();
-  void testPositiveHorizontal();
+  void testVertical();
+  void testHorizontal();
+  void testDiagonal();
+  void testBorderCrossing();
 
   void setUp();
   void tearDown();
 
 private:
   void testSync(int rowDist, int colDist, int row, int col);
+  void testNoSync(int rowDist, int colDist, int row, int col);
 
   vftasks_2d_sync_mgr_t *sync_mgr;
 };

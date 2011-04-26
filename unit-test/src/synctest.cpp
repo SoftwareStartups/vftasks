@@ -186,7 +186,7 @@ void SyncTest::testSync(int rowDist, int colDist, int row, int col)
  * positive synchronization tests that do not cross iteration-space boundaries
  ******************************************************************************/
 
-void SyncTest::testPositiveVertical()
+void SyncTest::testVertical()
 {
   /* left column boundary distance 1 */
   this->testSync(1, 0, 1, 0);
@@ -261,7 +261,7 @@ void SyncTest::testPositiveVertical()
   this->testSync(-2, 0, ROWS-4, COLS-1);
 }
 
-void SyncTest::testPositiveHorizontal()
+void SyncTest::testHorizontal()
 {
   /* first row boundary distance 1 */
   this->testSync(0, -1, 0, 0);
@@ -331,13 +331,104 @@ void SyncTest::testPositiveHorizontal()
   this->tearDown();
   this->setUp();
   this->testSync(0, 2, ROWS-1, COLS-1);
+}
+
+void SyncTest::testDiagonal()
+{
+  /* distance 1 tests */
+  this->testSync(1, 1, ROWS/2, COLS/2);
   this->tearDown();
   this->setUp();
-  this->testSync(0, COLS-1, ROWS-1, COLS-1);
+  this->testSync(1, -1, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-1, -1, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-1, 1, ROWS/2, COLS/2);
+  this->tearDown();
+
+  /* distance >1 tests */
+  this->setUp();
+  this->testSync(2, 2, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(2, -2, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-2, -2, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-2, 2, ROWS/2, COLS/2);
+  this->tearDown();
+
+  /* distance boundary tests */
+  this->setUp();
+  this->testSync(ROWS/2, COLS/2, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(ROWS/2, -(COLS/2 - 1), ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-(ROWS/2 - 1), -(COLS/2 - 1), ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testSync(-(ROWS/2 - 1), COLS/2, ROWS/2, COLS/2);
 }
 
 /******************************************************************************
  * negative synchronization tests
  ******************************************************************************/
+
+/* For certain cases, no synchronization is needed, for instance for i,j = 0,0
+ * and other combinations of distances and coordinates that fall outside the grid.
+ */
+void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
+{
+  args_t args;
+  pthread_t thread;
+
+  this->sync_mgr = vftasks_create_2d_sync_mgr(ROWS, COLS, rowDist, colDist);
+
+  /* wait in a separate thread, otherwise the main thread will lock up */
+  args.mgr = this->sync_mgr;
+  args.row = row;
+  args.col = col;
+  pthread_create(&thread, NULL, waitAndSet, &args);
+
+  usleep(10); // FIXME: not very robust
+  CPPUNIT_ASSERT(get() == 1);
+
+  pthread_join(thread, NULL);
+}
+
+void SyncTest::testBorderCrossing()
+{
+  /* corner tests */
+  this->testNoSync(1, 1, 0, 0);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(1, 0, 0, 0);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(0, 1, 0, 0);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(1, 0, 0, COLS-1);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(-1, -1, ROWS-1, COLS-1);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(1, 1, ROWS-1, 0);
+  this->tearDown();
+
+  /* somewhere in the middle tests */
+  this->setUp();
+  this->testNoSync(ROWS/2 + 1, 0, ROWS/2, COLS/2);
+  this->tearDown();
+  this->setUp();
+  this->testNoSync(ROWS/2 + 1, 1, ROWS/2, COLS/2);
+}
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SyncTest);
