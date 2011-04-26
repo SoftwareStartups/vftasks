@@ -1,6 +1,6 @@
 BUILDDIR = build
 
-.PHONY: default all clean clean_all install release
+.PHONY: default all clean clean_all install release check_env
 
 default all: install
 
@@ -15,7 +15,14 @@ release: install
 
 $(BUILDDIR):
 	mkdir -p $@
-clean:
+
+check_env:
+	@if [ -z "$$VFSTREAMINSTALL" ]; then \
+	  echo "Error: you must set the VFSTREAMINSTALL environment variable"; \
+	  exit 1; \
+	fi;
+
+clean: check_env
 	rm -rf $(BUILDDIR)
 
 clean_all: clean
