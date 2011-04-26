@@ -55,7 +55,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
 
   if (abs(dist_x) >= dim_x || abs(dist_y) >= dim_y)
   {
-    abort_on_fail("vftasks_create_2d_mgr");
+    abort_on_fail("vftasks_create_2d_mgr: distance larger than dimension");
     return NULL;
   }
 
@@ -63,7 +63,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   mgr = (vftasks_2d_sync_mgr_t *)malloc(sizeof(vftasks_2d_sync_mgr_t));
   if (mgr == NULL)
   {
-    abort_on_fail("vftasks_create_2d_mgr");
+    abort_on_fail("vftasks_create_2d_mgr: not enough memory");
     return NULL;
   }
 
@@ -78,7 +78,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   if (mgr->sems == NULL)
   {
     free(mgr);
-    abort_on_fail("vftasks_create_2d_mgr");
+    abort_on_fail("vftasks_create_2d_mgr: not enough memory");
     return NULL;
   }
 

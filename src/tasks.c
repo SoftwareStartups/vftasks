@@ -141,7 +141,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   worker->thread = (pthread_t *)malloc(sizeof(pthread_t));
   if (worker->thread == NULL)
   {
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: not enough memory");
     return 1;
   }
 
@@ -169,7 +169,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
   {
     free(worker->chunk);
     free(worker->thread);
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: thread creation failed");
     return 1;
   }
 
@@ -211,7 +211,7 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
   if (chunk->base == NULL)
   {
     free(chunk);
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: not enough memory");
     return NULL;
   }
   chunk->limit = chunk->base + num_workers;
@@ -229,7 +229,7 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
       }
       free((vftasks_nv_worker_t *)chunk->base);
       free(chunk);
-      abort_on_fail("vftasks_create_pool");
+      abort_on_fail("vftasks_create_pool: worker initialization failed");
       return NULL;
     }
   }
@@ -270,7 +270,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   pool = (vftasks_pool_t *)malloc(sizeof(vftasks_pool_t));
   if (pool == NULL)
   {
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: not enough memory");
     return NULL;
   }
 
@@ -278,7 +278,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   if (pthread_key_create(&key, NULL) != 0)
   {
     free(pool);
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: failed to create thread local storage");
     return NULL;
   }
 
@@ -291,7 +291,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   {
     pthread_key_delete(key);
     free(pool);
-    abort_on_fail("vftasks_create_pool");
+    abort_on_fail("vftasks_create_pool: worker creation failed");
     return NULL;
   }
 
