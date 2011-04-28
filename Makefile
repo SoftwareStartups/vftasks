@@ -12,7 +12,7 @@ test: | $(BUILDDIR)
 	-cd $(BUILDDIR) && make all test
 
 release: install
-	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFTASKSINSTALL)/vfstream.tgz
+	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFTASKSINSTALL)/vftasks.tgz
 
 $(BUILDDIR):
 	mkdir -p $@
