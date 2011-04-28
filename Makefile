@@ -8,7 +8,8 @@ install: | $(BUILDDIR)
 	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. && make install DESTDIR=$(VFSTREAMINSTALL)
 
 test: | $(BUILDDIR)
-	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug .. && make all test
+	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..
+	-cd $(BUILDDIR) && make all test
 
 release: install
 	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFSTREAMINSTALL)/vfstream.tgz
