@@ -8,10 +8,10 @@
  */
 
 #include "vftasks.h"
+#include "platform.h"
 
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */
-#include <semaphore.h>  /* semaphores */
 
 /* not all compilers recognize __inline__ */
 #ifndef __GNUC__
@@ -30,7 +30,7 @@ struct vftasks_2d_sync_mgr_s
   int dim_y;    /* iteration-space size along y-dimension */
   int dist_x;   /* critical distance along x-dimension */
   int dist_y;   /* critical distance along y-dimension */
-  sem_t *sems;  /* pointer to an array of dim_x semaphores */
+  semaphore_t *sems;  /* pointer to an array of dim_x semaphores */
 };
 
 /** abort
@@ -74,7 +74,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   mgr->dist_y = dist_y;
 
   /* allocate the semaphores held by the manager */
-  mgr->sems = (sem_t *)malloc(dim_x * sizeof(sem_t));
+  mgr->sems = (semaphore_t *)malloc(dim_x * sizeof(semaphore_t));
   if (mgr->sems == NULL)
   {
     free(mgr);
@@ -85,7 +85,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   /* initialize the semaphores */
   for (x = 0; x < dim_x; ++x)
   {
-    sem_init(&mgr->sems[x], 0, 0);
+    SEMAPHORE_CREATE(mgr->sems[x], dim_y);
   }
 
   /* return the pointer to the manager */
@@ -101,7 +101,7 @@ void vftasks_destroy_2d_sync_mgr(vftasks_2d_sync_mgr_t *mgr)
   /* destroy the semaphores held by the manager */
   for (x = 0; x < mgr->dim_x; ++x)
   {
-    sem_destroy(&mgr->sems[x]);
+    SEMAPHORE_DESTROY(mgr->sems[x]);
   }
 
   /* deallocate the semaphores */
@@ -120,7 +120,7 @@ int vftasks_signal_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
       y >= -mgr->dist_y && y < mgr->dim_y - mgr->dist_y)
   {
     /* signal through the current outer iteration's semaphore; on failure, return 1 */
-    if(sem_post(&mgr->sems[x]))
+    if (SEMAPHORE_POST(mgr->sems[x]) != 0)
     {
       abort_on_fail("vftasks_signal_2d");
       return 1;
@@ -140,7 +140,7 @@ int vftasks_wait_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
       y >= mgr->dist_y && y < mgr->dim_y + mgr->dist_y)
   {
     /* wait through the other iteration's semaphore; on failure, return 1 */
-    if (sem_wait(&mgr->sems[x - mgr->dist_x]))
+    if (SEMAPHORE_WAIT(mgr->sems[x - mgr->dist_x]) != 0)
     {
       abort_on_fail("vftasks_wait_2d");
       return 1;

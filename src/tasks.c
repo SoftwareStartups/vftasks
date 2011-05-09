@@ -8,10 +8,10 @@
  */
 
 #include "vftasks.h"
+#include "platform.h"
 
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */
-#include <pthread.h>    /* POSIX Threads API */
 
 /* not all compilers recognize __inline__ */
 #ifndef __GNUC__
@@ -48,9 +48,9 @@ typedef struct vftasks_chunk_s
 struct vftasks_worker_s
 {
   int is_active;           /* 0 if inactive, nonzero otherwise */
-  pthread_t *thread;       /* pointer to a handle for the POSIX thread on which the
+  thread_t thread;         /* pointer to a handle for the thread on which the
                               worker is running */
-  pthread_key_t key;       /* the TLS-key of the containing pool */
+  tls_key_t key;           /* the TLS-key of the containing pool */
   vftasks_chunk_t *chunk;  /* pointer to a chunk of subsidiary workers */
   vftasks_task_t *task;    /* task to be executed */
   void *args;              /* task arguments */
@@ -61,7 +61,7 @@ struct vftasks_worker_s
  */
 struct vftasks_pool_s
 {
-  pthread_key_t key;  /* TLS-key for the pool */
+  tls_key_t key; /* TLS-key for the pool */
 };
 
 /* ***************************************************************************
@@ -84,15 +84,15 @@ static void abort_on_fail(char *msg)
 
 /** loop executed by a worker thread
  */
-static void *vftasks_worker_loop(void *args)
+static WORKER_PROTO(vftasks_worker_loop, arg)
 {
   vftasks_worker_t *worker;  /* pointer to the worker */
 
   /* retrieve the worker pointer */
-  worker = (vftasks_worker_t *)args;
+  worker = (vftasks_worker_t *)arg;
 
   /* store the pointer to the chunk of subsidiary workers in TLS */
-  pthread_setspecific(worker->key, worker->chunk);
+  TLS_SET(worker->key, worker->chunk);
 
   /* execute the worker loop for as long as the worker is active */
   while (worker->is_active)
@@ -114,7 +114,7 @@ static void *vftasks_worker_loop(void *args)
   }
 
   /* worker is deactivated, so return */
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 /* ***************************************************************************
@@ -123,7 +123,7 @@ static void *vftasks_worker_loop(void *args)
 
 static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 {
-  return (vftasks_chunk_t *)pthread_getspecific(pool->key);
+  return (vftasks_chunk_t *)TLS_GET(pool->key);
 }
 
 /* ***************************************************************************
@@ -132,19 +132,9 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
 /** initialize worker
  */
-  static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
-                                                  pthread_key_t key)
+static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
+                                                tls_key_t key)
 {
-  int rc;
-
-  /* allocate a handle to a POSIX thread */
-  worker->thread = (pthread_t *)malloc(sizeof(pthread_t));
-  if (worker->thread == NULL)
-  {
-    abort_on_fail("vftasks_create_pool: not enough memory");
-    return 1;
-  }
-
   /* store the TLS-key for the containing pool */
   worker->key = key;
 
@@ -161,14 +151,13 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 
   /* activate the worker and have it running on a freshly forked thread */
   worker->is_active = 1;
-  rc = pthread_create(worker->thread,
-                      NULL,
-                      vftasks_worker_loop,
-                      (vftasks_nv_worker_t *) worker);
-  if (rc != 0)
+
+  if (THREAD_CREATE(worker->thread,
+                    vftasks_worker_loop,
+                    (vftasks_nv_worker_t *) worker) != 0)
   {
     free(worker->chunk);
-    free(worker->thread);
+    THREAD_DESTROY(worker->thread);
     abort_on_fail("vftasks_create_pool: thread creation failed");
     return 1;
   }
@@ -183,19 +172,17 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
 {
   /* deactivate the worker and join with the thread it is running on */
   worker->is_active = 0;
-  pthread_join(*worker->thread, NULL);
+
+  THREAD_JOIN(worker->thread);
 
   /* deallocate the chunk of subsidiary workers */
   free(worker->chunk);
-
-  /* deallocate the handle to the thread */
-  free(worker->thread);
 }
 
 /** create and activate a chunk of workers of a given size
  */
 static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
-                                                          pthread_key_t key)
+                                                          tls_key_t key)
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
@@ -257,13 +244,12 @@ static void vftasks_destroy_workers(vftasks_chunk_t *chunk)
   free(chunk);
 }
 
-
 /** create pool
  */
 vftasks_pool_t *vftasks_create_pool(int num_workers)
 {
   vftasks_pool_t *pool;    /* pointer to the pool */
-  pthread_key_t key;       /* TLS-key for the pool pointer */
+  tls_key_t key;           /* TLS-key for the pool pointer */
   vftasks_chunk_t *chunk;  /* pointer to a chunk containing all the workers */
 
   /* allocate the pool */
@@ -275,10 +261,10 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   }
 
   /* create a TLS-key for the pool pointer */
-  if (pthread_key_create(&key, NULL) != 0)
+  if (TLS_CREATE(key) != 0)
   {
     free(pool);
-    abort_on_fail("vftasks_create_pool: failed to create thread local storage");
+    abort_on_fail("vftasks_create_pool: could not create thread local storage");
     return NULL;
   }
 
@@ -289,17 +275,17 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   chunk = vftasks_create_workers(num_workers, key);
   if (chunk == NULL)
   {
-    pthread_key_delete(key);
+    TLS_DESTROY(key);
     free(pool);
     abort_on_fail("vftasks_create_pool: worker creation failed");
     return NULL;
   }
 
   /* store the workers in TLS */
-  if (pthread_setspecific(key, chunk) != 0)
+  if (TLS_SET(key, chunk) != 0)
   {
     vftasks_destroy_workers(chunk);
-    pthread_key_delete(key);
+    TLS_DESTROY(key);
     free(pool);
     return NULL;
   }
@@ -316,7 +302,7 @@ void vftasks_destroy_pool(vftasks_pool_t *pool)
   vftasks_destroy_workers(vftasks_get_chunk(pool));
 
   /* delete the TLS-key for the pool */
-  pthread_key_delete(pool->key);
+  TLS_DESTROY(pool->key);
 
   /* deallocate the pool */
   free(pool);
