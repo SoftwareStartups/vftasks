@@ -63,6 +63,8 @@ public:
   void testSubmitGetNestedLoop();
   void testSubmitGetNestedLoopInvalidSubWorkers();
 
+  TasksTest();
+
   void tearDown();
 
 private:

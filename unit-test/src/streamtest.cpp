@@ -12,6 +12,35 @@
 #include <cmath>    // for fabs
 #include <cstdlib>  // for malloc, free
 
+extern "C"
+{
+  #include "platform.h"
+}
+
+#ifdef _POSIX_SOURCE
+#include <pthread.h>
+#define EXEC_ON_WORKER_THREAD(FUNC,ARG)                                 \
+  {                                                                     \
+    pthread_t worker;                                                   \
+    void *result;                                                       \
+    CPPUNIT_ASSERT(pthread_create(&worker, NULL, FUNC, ARG) == 0);      \
+    CPPUNIT_ASSERT(pthread_join(worker, &result) == 0);                 \
+  }
+#elif defined(_WIN32)
+#include <windows.h>
+#define EXEC_ON_WORKER_THREAD(FUNC,ARG)                         \
+  {                                                             \
+    DWORD exit_code;                                            \
+    HANDLE worker = CreateThread(NULL, 0, FUNC, ARG, 0, NULL);  \
+    WaitForSingleObject(worker, INFINITE);                      \
+    GetExitCodeThread(worker, &exit_code);                      \
+    CloseHandle(worker);                                        \
+    CPPUNIT_ASSERT(exit_code == 0);                             \
+  }
+#else
+#error("unsupported platform")
+#endif
+
 
 #define EQ(TYPE, X, Y)   (fabs(X - Y) < std::numeric_limits<TYPE>::epsilon())
 #define EQ_FLOAT(X, Y)   EQ(float, X, Y)
@@ -29,16 +58,10 @@
 #define WITH_RPORT                                                     \
   this->rport = vftasks_create_read_port(this->chan, this->mem_mgr);   \
   CPPUNIT_ASSERT(this->rport != NULL);
-#define EXEC_ON_WORKER_THREAD(FUNC, ARG)                                \
-  {                                                                     \
-    pthread_t worker;                                                   \
-    void *result;                                                       \
-    CPPUNIT_ASSERT(pthread_create(&worker, NULL, FUNC, ARG) == 0);      \
-    CPPUNIT_ASSERT(pthread_join(worker, &result) == 0);                 \
-  }
-#define WPORT_FROM_VOID(WPORT, VOID)                                    \
+
+#define WPORT_FROM_VOID(WPORT, VOID)                \
   vftasks_wport_t *WPORT = (vftasks_wport_t *)VOID;
-#define RPORT_FROM_VOID(RPORT, VOID)                                    \
+#define RPORT_FROM_VOID(RPORT, VOID)                \
   vftasks_rport_t *RPORT = (vftasks_rport_t *)VOID;
 
 
@@ -58,10 +81,6 @@ static void suspendReader(vftasks_rport_t *rport)
 static void resumeReader(vftasks_rport_t *rport)
 {
 }
-
-
-// register fixture
-CPPUNIT_TEST_SUITE_REGISTRATION(StreamTest);
 
 
 void StreamTest::increaseWriterSuspendCount()
@@ -119,12 +138,6 @@ void StreamTest::setUp()
   this->wport = NULL;
   this->rport = NULL;
 
-  // allocate space for threads
-  this->writer = (pthread_t *)malloc(sizeof(pthread_t));
-  CPPUNIT_ASSERT(this->writer != NULL);
-  this->reader = (pthread_t *)malloc(sizeof(pthread_t));
-  CPPUNIT_ASSERT(this->reader != NULL);
-
   // initialize suspend and resume counts
   this->writerSuspendCount = 0;
   this->writerResumeCount = 0;
@@ -141,10 +154,6 @@ void StreamTest::tearDown()
     vftasks_destroy_read_port(this->rport, this->mem_mgr);
   if (this->chan != NULL)
     vftasks_destroy_chan(this->chan, this->mem_mgr, this->mem_mgr);
-
-  // free space for threads
-  if (this->writer != NULL) free(this->writer);
-  if (this->reader != NULL) free(this->reader);
 
   // free space for memory manager
   if (this->mem_mgr != NULL) free(this->mem_mgr);
@@ -1276,7 +1285,7 @@ void StreamTest::testOverflow()
   vftasks_release_room(this->rport, token);
 }
 
-static void *testSuspendingWriter_write(void *arg)
+static WORKER_PROTO(testSuspendingWriter_write, arg)
 {
   WPORT_FROM_VOID(wport, arg);
 
@@ -1287,7 +1296,7 @@ static void *testSuspendingWriter_write(void *arg)
   vftasks_write_int32(wport, 3);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testSuspendingWriter_suspendWriter(vftasks_wport_t *wport)
@@ -1296,7 +1305,7 @@ static void testSuspendingWriter_suspendWriter(vftasks_wport_t *wport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_wport(wport)) = true;
 
   // exit writer thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 void StreamTest::testSuspendingWriter()
@@ -1322,7 +1331,7 @@ void StreamTest::testSuspendingWriter()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testResumingWriter_write(void *arg)
+static WORKER_PROTO(testResumingWriter_write, arg)
 {
   WPORT_FROM_VOID(wport, arg);
 
@@ -1333,13 +1342,13 @@ static void *testResumingWriter_write(void *arg)
   vftasks_write_int32(wport, 3);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testResumingWriter_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testResumingWriter_resumeWriter(vftasks_wport_t *wport)
@@ -1374,7 +1383,7 @@ void StreamTest::testResumingWriter()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testSuspendingReader_read(void *arg)
+static WORKER_PROTO(testSuspendingReader_read, arg)
 {
   RPORT_FROM_VOID(rport, arg);
 
@@ -1382,7 +1391,7 @@ static void *testSuspendingReader_read(void *arg)
   vftasks_read_int32(rport);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testSuspendingReader_suspendReader(vftasks_rport_t *rport)
@@ -1391,7 +1400,7 @@ static void testSuspendingReader_suspendReader(vftasks_rport_t *rport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_rport(rport)) = true;
 
   // exit writer thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 void StreamTest::testSuspendingReader()
@@ -1417,7 +1426,7 @@ void StreamTest::testSuspendingReader()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testResumingReader_read(void *arg)
+static WORKER_PROTO(testResumingReader_read, arg)
 {
   RPORT_FROM_VOID(rport, arg);
 
@@ -1425,13 +1434,13 @@ static void *testResumingReader_read(void *arg)
   vftasks_read_int32(rport);
 
   // exit reader thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testResumingReader_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testResumingReader_resumeReader(vftasks_rport_t *rport)
@@ -1442,7 +1451,7 @@ static void testResumingReader_resumeReader(vftasks_rport_t *rport)
 
 void StreamTest::testResumingReader()
 {
-  bool flag;  // flag
+  bool flag;
 
   CREATE_CHAN(1, 8) WITH_WPORT WITH_RPORT;
 
@@ -1466,7 +1475,7 @@ void StreamTest::testResumingReader()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testHittingLowWaterMark_write(void *arg)
+static WORKER_PROTO(testHittingLowWaterMark_write, arg)
 {
   WPORT_FROM_VOID(wport, arg);
 
@@ -1477,13 +1486,13 @@ static void *testHittingLowWaterMark_write(void *arg)
   vftasks_write_int32(wport, 17);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testHittingLowWaterMark_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testHittingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
@@ -1527,7 +1536,7 @@ void StreamTest::testHittingLowWaterMark()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testPassingLowWaterMark_write(void *arg)
+static WORKER_PROTO(testPassingLowWaterMark_write, arg)
 {
   WPORT_FROM_VOID(wport, arg);
 
@@ -1538,13 +1547,13 @@ static void *testPassingLowWaterMark_write(void *arg)
   vftasks_write_int32(wport, 17);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testPassingLowWaterMark_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testPassingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
@@ -1593,7 +1602,7 @@ void StreamTest::testPassingLowWaterMark()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testHittingHighWaterMark_read(void *arg)
+static WORKER_PROTO(testHittingHighWaterMark_read, arg)
 {
   RPORT_FROM_VOID(rport, arg);
 
@@ -1601,13 +1610,13 @@ static void *testHittingHighWaterMark_read(void *arg)
   vftasks_read_int32(rport);
 
   // exit writer thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testHittingHighWaterMark_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testHittingHighWaterMark_resumeReader(vftasks_rport_t *rport)
@@ -1651,7 +1660,7 @@ void StreamTest::testHittingHighWaterMark()
   CPPUNIT_ASSERT(flag);
 }
 
-static void *testPassingHighWaterMark_read(void *arg)
+static WORKER_PROTO(testPassingHighWaterMark_read, arg)
 {
   RPORT_FROM_VOID(rport, arg);
 
@@ -1659,13 +1668,13 @@ static void *testPassingHighWaterMark_read(void *arg)
   vftasks_read_int32(rport);
 
   // exit reader thread
-  return NULL;
+  return THREAD_EXIT_SUCCESS;
 }
 
 static void testPassingHighWaterMark_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  pthread_exit(NULL);
+  THREAD_EXIT(THREAD_EXIT_SUCCESS);
 }
 
 static void testPassingHighWaterMark_resumeReader(vftasks_rport_t *rport)
@@ -1713,3 +1722,6 @@ void StreamTest::testPassingHighWaterMark()
   // verify that the reader was again prompted to resume
   CPPUNIT_ASSERT(flag);
 }
+
+// register fixture
+CPPUNIT_TEST_SUITE_REGISTRATION(StreamTest);

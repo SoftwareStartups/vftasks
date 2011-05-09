@@ -7,9 +7,14 @@
 # Fabrics.
 
 file(GLOB src src/*.cpp)
-include_directories(../include)
+include_directories(../include ../src)
 add_executable(unit_test ${src})
-target_link_libraries(unit_test vftasks pthread cppunit)
+
+if (WIN32)
+  target_link_libraries(unit_test vftasks cppunit)
+else (WIN32)
+  target_link_libraries(unit_test vftasks cppunit pthread)
+endif (WIN32)
 
 enable_testing()
 add_test(unit_test unit_test)

@@ -57,6 +57,11 @@ static void *square(void *raw_args)
   return result;
 }
 
+TasksTest::TasksTest()
+{
+  this->pool = NULL;
+}
+
 void TasksTest::tearDown()
 {
   if (this->pool != NULL)

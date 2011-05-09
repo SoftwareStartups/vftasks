@@ -11,8 +11,6 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "taskstest.h"
-
 extern "C"
 {
 #include <vftasks.h>
@@ -40,6 +38,8 @@ public:
   void testHorizontal();
   void testDiagonal();
   void testBorderCrossing();
+
+  SyncTest();
 
   void setUp();
   void tearDown();

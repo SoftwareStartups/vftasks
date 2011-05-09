@@ -11,8 +11,7 @@
 extern "C"
 {
 #include <stdlib.h> /* malloc / free */
-#include <unistd.h> /* usleep */
-#include <pthread.h>
+#include "platform.h"
 }
 
 #define ROWS 32
@@ -25,7 +24,7 @@ typedef struct
   int col; /* column iterator value in which the thread is waiting */
 } args_t;
 
-static pthread_mutex_t mutex;
+static mutex_t mutex;
 static volatile int set = 0;
 
 #define ASSERT_AND_CLEAN(mgr,ref)               \
@@ -38,7 +37,7 @@ static volatile int set = 0;
 /* Thread-safe worker function that sets a global.
  * See testWaitSignal for more info.
  */
-static void *waitAndSet(void *raw_args)
+static WORKER_PROTO(waitAndSet, raw_args)
 {
   int i;
   args_t *args = (args_t *)raw_args;
@@ -46,9 +45,9 @@ static void *waitAndSet(void *raw_args)
   for (i = 0; i <= args->col; i++)
     vftasks_wait_2d(args->mgr, args->row, i);
 
-  pthread_mutex_lock(&mutex);
+  MUTEX_LOCK(mutex);
   set = 1;
-  pthread_mutex_unlock(&mutex);
+  MUTEX_UNLOCK(mutex);
 
   return NULL;
 }
@@ -61,16 +60,21 @@ static int get()
 {
   int result;
 
-  pthread_mutex_lock(&mutex);
+  MUTEX_LOCK(mutex);
   result = set;
-  pthread_mutex_unlock(&mutex);
+  MUTEX_UNLOCK(mutex);
 
   return result;
 }
 
+SyncTest::SyncTest()
+{
+  this->sync_mgr = NULL;
+}
+
 void SyncTest::setUp()
 {
-  pthread_mutex_init(&mutex, NULL);
+  MUTEX_CREATE(mutex);
   set = 0;
 }
 
@@ -79,8 +83,8 @@ void SyncTest::tearDown()
   if (this->sync_mgr != NULL)
     vftasks_destroy_2d_sync_mgr(this->sync_mgr);
 
-  pthread_mutex_unlock(&mutex);
-  pthread_mutex_destroy(&mutex);
+  MUTEX_UNLOCK(mutex);
+  MUTEX_DESTROY(mutex);
 }
 
 void SyncTest::testCreateManager()
@@ -150,7 +154,7 @@ void SyncTest::testSync(int rowDist, int colDist, int row, int col)
 {
   int i, j;
   args_t args;
-  pthread_t thread;
+  thread_t thread;
 
   this->sync_mgr = vftasks_create_2d_sync_mgr(ROWS, COLS, rowDist, colDist);
 
@@ -158,28 +162,28 @@ void SyncTest::testSync(int rowDist, int colDist, int row, int col)
   args.mgr = this->sync_mgr;
   args.row = row;
   args.col = col;
-  pthread_create(&thread, NULL, waitAndSet, &args);
+  THREAD_CREATE(thread, waitAndSet, &args);
 
   for (i = 0; i < row-rowDist; i++)
     for (j = 0; j < COLS; j++)
     {
       vftasks_signal_2d(this->sync_mgr, i, j);
-      usleep(10); // FIXME: not very robust
+      SLEEP(5); // FIXME: not very robust
       CPPUNIT_ASSERT(get() == 0);
     }
 
   for (j = 0; j < col-colDist; j++)
   {
     vftasks_signal_2d(this->sync_mgr, i, j);
-    usleep(10); // FIXME: not very robust
+    SLEEP(5); // FIXME: not very robust
     CPPUNIT_ASSERT(get() == 0);
   }
 
   vftasks_signal_2d(this->sync_mgr, i, j);
-  usleep(10); // FIXME: not very robust
+  SLEEP(5); // FIXME: not very robust
   CPPUNIT_ASSERT(get() == 1);
 
-  pthread_join(thread, NULL);
+  THREAD_JOIN(thread);
 }
 
 /******************************************************************************
@@ -386,7 +390,7 @@ void SyncTest::testDiagonal()
 void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
 {
   args_t args;
-  pthread_t thread;
+  thread_t thread;
 
   this->sync_mgr = vftasks_create_2d_sync_mgr(ROWS, COLS, rowDist, colDist);
 
@@ -394,12 +398,12 @@ void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
   args.mgr = this->sync_mgr;
   args.row = row;
   args.col = col;
-  pthread_create(&thread, NULL, waitAndSet, &args);
+  THREAD_CREATE(thread, waitAndSet, &args);
 
-  usleep(10); // FIXME: not very robust
+  SLEEP(5); // FIXME: not very robust
   CPPUNIT_ASSERT(get() == 1);
 
-  pthread_join(thread, NULL);
+  THREAD_JOIN(thread);
 }
 
 void SyncTest::testBorderCrossing()
@@ -431,4 +435,5 @@ void SyncTest::testBorderCrossing()
   this->testNoSync(ROWS/2 + 1, 1, ROWS/2, COLS/2);
 }
 
+// register fixture
 CPPUNIT_TEST_SUITE_REGISTRATION(SyncTest);
