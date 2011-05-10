@@ -7,7 +7,6 @@
 # Fabrics.
 
 include(CheckCCompilerFlag)
-include(CheckLibraryExists)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -26,7 +25,8 @@ append_if(VFTASKS_COMPILER_FLAGS HAS_PEDANTIC_FLAG -pedantic)
 add_definitions(${VFTASKS_COMPILER_FLAGS})
 set(CMAKE_C_FLAGS_RELEASE "-DVFTASKS_ABORT_ON_FAILURE ${CMAKE_C_FLAGS_RELEASE}")
 
-find_library(CPPUNIT cppunit)
+find_library(CPPUNIT_LIB cppunit)
+find_library(PTHREAD_LIB pthread)
 find_program(DOXYGEN doxygen)
 
 add_subdirectory(src)
@@ -35,12 +35,18 @@ add_subdirectory(example)
 
 if (DOXYGEN)
   add_subdirectory(doc EXCLUDE_FROM_ALL)
+else (DOXYGEN)
+  message(STATUS "Doxygen not found, not configuring doc target")
 endif (DOXYGEN)
 
-if (CPPUNIT AND CMAKE_BUILD_TYPE STREQUAL debug)
-  add_subdirectory(unit-test)
-  enable_testing()
-endif (CPPUNIT AND CMAKE_BUILD_TYPE STREQUAL debug)
+if (CMAKE_BUILD_TYPE STREQUAL debug)
+  if (CPPUNIT_LIB)
+    add_subdirectory(unit-test)
+    enable_testing()
+  else (CPPUNIT_LIB)
+    message(STATUS "Cppunit not installed, not configuring unit_test target")
+  endif (CPPUNIT_LIB)
+endif (CMAKE_BUILD_TYPE STREQUAL debug)
 
 # disable the /usr/local prefix
 set(CMAKE_INSTALL_PREFIX "")
