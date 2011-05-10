@@ -1,20 +1,26 @@
 BUILDDIR = build
+LIB = $(BUILDDIR)/src/libvftasks.a
+INC = include/vftasks.h
+INSTALL_INCDIR = $(VFTASKSINSTALL)/include
+INSTALL_LIBDIR = $(VFTASKSINSTALL)/lib
 
 .PHONY: default all clean clean_all install release check_env
 
 default all: install
 
-install: | $(BUILDDIR)
-	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. && make install DESTDIR=$(VFTASKSINSTALL)
+install: check_env | $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR)
+	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. && make vftasks
+	cp -u $(LIB) $(INSTALL_LIBDIR)
+	cp -u $(INC) $(INSTALL_INCDIR)
 
 test: | $(BUILDDIR)
 	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..
-	-cd $(BUILDDIR) && make all test
+	-cd $(BUILDDIR) && make unit_test test
 
 release: install
-	cd $(BUILDDIR) && cmake .. && make package && cp vftasks.tar.gz $(VFTASKSINSTALL)/vftasks.tgz
+	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz include lib
 
-$(BUILDDIR):
+$(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
 	mkdir -p $@
 
 check_env:
@@ -23,8 +29,8 @@ check_env:
 	  exit 1; \
 	fi;
 
-clean: check_env
+clean:
 	rm -rf $(BUILDDIR)
 
-clean_all: clean
+clean_all: check_env clean
 	rm -rf $(VFTASKSINSTALL)/* result.xml

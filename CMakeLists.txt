@@ -47,10 +47,3 @@ if (CMAKE_BUILD_TYPE STREQUAL debug)
     message(STATUS "Cppunit not installed, not configuring unit_test target")
   endif (CPPUNIT_LIB)
 endif (CMAKE_BUILD_TYPE STREQUAL debug)
-
-# disable the /usr/local prefix
-set(CMAKE_INSTALL_PREFIX "")
-
-set(CPACK_GENERATOR "TGZ")
-set(CPACK_PACKAGE_FILE_NAME "vftasks")
-include(CPack)
