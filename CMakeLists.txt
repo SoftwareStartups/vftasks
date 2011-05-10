@@ -34,7 +34,7 @@ add_subdirectory(include)
 add_subdirectory(example)
 
 if (DOXYGEN)
-  add_subdirectory(doc EXCLUDE_FROM_ALL)
+  add_subdirectory(doc)
 else (DOXYGEN)
   message(STATUS "Doxygen not found, not configuring doc target")
 endif (DOXYGEN)
