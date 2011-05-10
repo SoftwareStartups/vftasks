@@ -1,7 +1,7 @@
 1 vfTasks Installation
 =======================
 
-This file describes how to build the vfTasks library on your local system.
+This file describes how to build, install & test the vfTasks library on your local system.
 
 
 2 Obtaining vfTasks
@@ -12,6 +12,7 @@ This file describes how to build the vfTasks library on your local system.
 
   2. Unpack the vfTasks archive in a local directory.
      $ tar -zxvf vftasks-<version>.tar.gz
+     or use your favourite archive software on windows (7-Zip, WinRaR, ...)
 
 
 3 Prerequisites
@@ -19,12 +20,10 @@ This file describes how to build the vfTasks library on your local system.
 
   * To configure the source, CMake is needed (http://www.cmake.org).
 
-  * To compile and run the unit tests, the GNU C++ compiler (g++) or alternative ANSI C++
-    compiler is required. In addition, the CppUnit library is required
-    (http://sourceforge.net/apps/mediawiki/cppunit)
+  * The CppUnit library is required (http://sourceforge.net/apps/mediawiki/cppunit)
 
   * To build the (html) documentation from the sources,
-    Doxygen is required (http://www.stack.nl/~dimitri/doxygen).
+    Doxygen is required (http://www.doxygen.org).
 
 3.1 Debian/Ubuntu
 -----------------
@@ -46,11 +45,24 @@ This file describes how to build the vfTasks library on your local system.
     Microsoft freely offers Visual Studio Express
     (http://www.microsoft.com/express/Downloads/#2010-Visual-CPP)
 
-  * A POSIX compliant thread library. (http://sourceware.org/pthreads-win32/).
+  * Installing CppUnit on Windows needs to be done from a source build.
+    Check out their website for more information (http://sourceforge.net/projects/cppunit).
 
+The build has been verified on:
+  * Ubuntu 10.04 64 bits:
+    - gcc/g++ version 4.4.3
+    - CppUnit version 1.12.1
+    - Doxygen 1.6.3
 
-The build has been verified on Ubuntu 10.04 64 bits and 32 bits with gcc/g++ version 4.4.3,
-CppUnit version 1.12.1, and Doxygen 1.6.3
+  * Ubuntu 10.10 32 bits:
+    - gcc/g++ version 4.4.5
+    - CppUnit version 1.12.1
+    - Doxygen 1.6.3
+
+  * Windows 7 Professional 64 bits:
+    - Visual Studio Express 10.0
+    - CppUnit version 1.12.2
+    - Doxygen 1.7.4
 
 
 4 Building vfTasks
@@ -75,7 +87,7 @@ CppUnit version 1.12.1, and Doxygen 1.6.3
 
   * Build the html documentation:
     $ make doc
-    The documentation is located under vftasks-<version>/build/doc/html/
+    The documentation is located in vftasks-<version>/build/doc/html/
 
   * Clean the build directory with:
     $ make clean
@@ -88,4 +100,7 @@ CppUnit version 1.12.1, and Doxygen 1.6.3
     $ cmake -G "Visual Studio <VERSION>" ..
 
   * Open the generated solution file with the Visual Studio IDE.
+
+  * Depending on the presence of CppUnit and Doxygen, you see a number of projects,
+    which can all be built and run using the IDE's interface.
 
