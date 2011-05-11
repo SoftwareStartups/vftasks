@@ -9,6 +9,11 @@
 file(GLOB src src/*.cpp)
 include_directories(../include ../src)
 add_executable(unit_test ${src})
-target_link_libraries(unit_test vftasks ${CPPUNIT_LIB} ${PTHREAD_LIB})
 enable_testing()
 add_test(unit_test unit_test)
+
+if (${CMAKE_USE_PTHREADS_INIT})
+  target_link_libraries(unit_test vftasks ${CMAKE_THREAD_LIBS_INIT} ${CPPUNIT_LIB})
+else (${CMAKE_USE_PTHREADS_INIT})
+  target_link_libraries(unit_test vftasks ${CPPUNIT_LIB})
+endif (${CMAKE_USE_PTHREADS_INIT})

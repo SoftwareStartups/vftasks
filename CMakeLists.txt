@@ -6,7 +6,10 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
+enable_language(C)
+enable_language(CXX)
 include(CheckCCompilerFlag)
+include(FindThreads)
 
 cmake_minimum_required(VERSION 2.6)
 

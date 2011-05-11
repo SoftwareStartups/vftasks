@@ -8,11 +8,11 @@
 
 include_directories(../include)
 
-if (WIN32)
+if (${CMAKE_USE_PTHREADS_INIT})
+  set(libs vftasks ${CMAKE_THREAD_LIBS_INIT})
+else (${CMAKE_USE_PTHREADS_INIT})
   set(libs vftasks)
-else (WIN32)
-  set(libs vftasks pthread)
-endif (WIN32)
+endif (${CMAKE_USE_PTHREADS_INIT})
 
 add_executable(2d src/2d.c)
 
