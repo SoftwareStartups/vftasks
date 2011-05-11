@@ -14,26 +14,6 @@
 #define COLS 32
 #define N_PARTITIONS 4
 
-typedef struct
-{
-  int start;
-  int stride;
-} loop_args_t;
-
-typedef struct
-{
-  int start;
-  int stride;
-  vftasks_pool_t *pool;
-} outer_loop_args_t;
-
-typedef struct
-{
-  int outer_loop_idx;
-  int start;
-  int stride;
-} inner_loop_args_t;
-
 volatile static int array[ROWS];
 volatile static int matrix[ROWS][COLS];
 
@@ -41,31 +21,47 @@ volatile static int matrix[ROWS][COLS];
 // can be used as a task without subsidiary workers
 static void *square(void *raw_args)
 {
-  int *arg;     // a pointer to the argument
-  int *result;  // a pointer to the result
+  square_args_t *arg;     // a pointer to the argument
+  int result;
 
   // cast the argument pointer to a pointer of the proper type
-  arg = (int *)raw_args;
-
-  // allocate memory for the result
-  result = (int *)malloc(sizeof(int));
+  arg = (square_args_t *)raw_args;
 
   // compute the square of the argument and store in the memory allocated for the result
-  *result = *arg * *arg;
+  result = arg->val * arg->val;
+
+  if (arg->result_needed)
+  {
+    int *result_ptr = (int *)malloc(sizeof(int));
+    *result_ptr = result;
+    return result_ptr;
+  }
 
   // return a pointer to the result
-  return result;
+  return NULL;
 }
 
 TasksTest::TasksTest()
 {
   this->pool = NULL;
+  this->square_args = NULL;
+  this->loop_args = NULL;
+  this->inner_loop_args = NULL;
+  this->outer_loop_args = NULL;
 }
 
 void TasksTest::tearDown()
 {
   if (this->pool != NULL)
     vftasks_destroy_pool(this->pool);
+  if (this->square_args !=NULL)
+    free(this->square_args);
+  if (this->loop_args !=NULL)
+    free(this->loop_args);
+  if (this->inner_loop_args !=NULL)
+    free(this->inner_loop_args);
+  if (this->outer_loop_args !=NULL)
+    free(this->outer_loop_args);
 }
 
 void TasksTest::testCreateEmptyPool()
@@ -107,35 +103,37 @@ void TasksTest::testSubmitEmptyTask()
 
 void TasksTest::testSubmit()
 {
-  // this is not freed intentionally, since the workers might still be running
-  // when it goes out of scope
-  int *arg = (int *)malloc(sizeof(int));
-  *arg = 3;
+  this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
+  this->square_args->val = 3;
+  this->square_args->result_needed = false;
 
   this->pool = vftasks_create_pool(1);
-  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 0) == 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, 0) == 0);
 }
 
 void TasksTest::testSubmitInvalidNumWorkers()
 {
-  int arg = 3;
-
+  this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
+  this->square_args->val = 3;
+  this->square_args->result_needed = false;
   this->pool = vftasks_create_pool(1);
 
-  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, -1) != 0);
-  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 1) != 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, -1) != 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, 1) != 0);
 }
 
 void TasksTest::testSubmitGet()
 {
-  int arg = 3;
   int *result_ptr;
-
+  this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
+  this->square_args->val = 3;
+  this->square_args->result_needed = true;
   this->pool = vftasks_create_pool(1);
 
-  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &arg, 0) == 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, this->square_args, 0) == 0);
   CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result_ptr) == 0);
   CPPUNIT_ASSERT(*result_ptr == 9);
+  free(result_ptr);
 }
 
 void TasksTest::testGetNoWorkers()
@@ -148,10 +146,7 @@ void TasksTest::testGetNoWorkers()
 static void *loop(void *raw_args)
 {
   int i;
-  int *acc = (int *)malloc(sizeof(int));
   loop_args_t *args = (loop_args_t *)raw_args;
-
-  *acc = 0;
 
   for (i = args->start; i < ROWS; i += args->stride)
     array[i] = i;
@@ -165,13 +160,13 @@ void TasksTest::submitLoop()
 
   // this is not freed intentionally, since the workers might still be running
   // when it goes out of scope
-  loop_args_t *args = (loop_args_t *)calloc(N_PARTITIONS, sizeof(loop_args_t));
+  this->loop_args = (loop_args_t *)calloc(N_PARTITIONS, sizeof(loop_args_t));
 
   for (i = 0; i < N_PARTITIONS; i++)
   {
-    args[i].start = i;
-    args[i].stride = N_PARTITIONS;
-    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &args[i], 0) == 0);
+    this->loop_args[i].start = i;
+    this->loop_args[i].stride = N_PARTITIONS;
+    CPPUNIT_ASSERT(vftasks_submit(this->pool, loop, &this->loop_args[i], 0) == 0);
   }
 }
 
@@ -225,11 +220,9 @@ static void *inner_loop(void *raw_args)
 // The inner loop is called by submitting subsidiary tasks.
 static void *outer_loop(void *raw_args)
 {
-  int i, j;
+  int i, j, result = 0;
   inner_loop_args_t inner_args[N_PARTITIONS];
   outer_loop_args_t *args = (outer_loop_args_t *) raw_args;
-  int *result = (int *)malloc(sizeof(int));
-  *result = 0;
 
   for (i = args->start; i < ROWS; i += args->stride)
   {
@@ -247,10 +240,17 @@ static void *outer_loop(void *raw_args)
     inner_loop(&inner_args[j]);
 
     for (j = 0; j < N_PARTITIONS-1; j++)
-      *result |= vftasks_get(args->pool, NULL);
+      result |= vftasks_get(args->pool, NULL);
   }
 
-  return result;
+  if (args->result_needed)
+  {
+    int *result_ptr = (int *)malloc(sizeof(int));
+    *result_ptr = result;
+    return result_ptr;
+  }
+
+  return NULL;
 }
 
 // Helper function to submit nested loop tasks with a variable
@@ -260,15 +260,17 @@ int TasksTest::submitNestedLoop(int numWorkers)
 {
   int i, result = 0;
   int results[N_PARTITIONS-1];
-  outer_loop_args_t *args =
-    (outer_loop_args_t *)calloc(N_PARTITIONS, sizeof(outer_loop_args_t));
+  this->outer_loop_args = (outer_loop_args_t *)calloc(N_PARTITIONS,
+                                                      sizeof(outer_loop_args_t));
 
   for (i = 0; i < N_PARTITIONS-1; i++)
   {
-    args[i].start = i;
-    args[i].stride = N_PARTITIONS;
-    args[i].pool = this->pool;
-    results[i] = vftasks_submit(this->pool, outer_loop, &args[i], numWorkers);
+    this->outer_loop_args[i].start = i;
+    this->outer_loop_args[i].stride = N_PARTITIONS;
+    this->outer_loop_args[i].pool = this->pool;
+    this->outer_loop_args[i].result_needed = false;
+    results[i] = vftasks_submit(this->pool, outer_loop,
+                                &this->outer_loop_args[i], numWorkers);
   }
 
   for (i = 0; i < N_PARTITIONS-1; i++)
@@ -300,27 +302,40 @@ int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
   int i, result = 0;
   int results[N_PARTITIONS-1];
   int *result_ptr;
-  outer_loop_args_t *args =
-    (outer_loop_args_t *)calloc(N_PARTITIONS, sizeof(outer_loop_args_t));
+  this->outer_loop_args = (outer_loop_args_t *)calloc(N_PARTITIONS,
+                                                      sizeof(outer_loop_args_t));
 
   for (i = 0; i < N_PARTITIONS-1; i++)
   {
-    args[i].start = i;
-    args[i].stride = N_PARTITIONS;
-    args[i].pool = this->pool;
-    vftasks_submit(this->pool, outer_loop, &args[i], numWorkers);
+    this->outer_loop_args[i].start = i;
+    this->outer_loop_args[i].stride = N_PARTITIONS;
+    this->outer_loop_args[i].pool = this->pool;
+    this->outer_loop_args[i].result_needed = true;
+    vftasks_submit(this->pool, outer_loop, &this->outer_loop_args[i], numWorkers);
   }
 
   for (i = 0; i < N_PARTITIONS-1; i++)
   {
+    result_ptr = NULL;
     results[i] = vftasks_get(this->pool, (void **)&result_ptr);
-    result |= *result_ptr;
+    if (result_ptr != NULL)
+    {
+      result |= *result_ptr;
+      free(result_ptr);
+    }
   }
 
-  args[i].start = i;
-  args[i].stride = N_PARTITIONS;
-  args[i].pool = this->pool;
-  result |= *(int *)outer_loop(&args[i]);
+  this->outer_loop_args[i].start = i;
+  this->outer_loop_args[i].stride = N_PARTITIONS;
+  this->outer_loop_args[i].pool = this->pool;
+  this->outer_loop_args[i].result_needed = true;
+  result_ptr = NULL;
+  result_ptr = (int *)outer_loop(&this->outer_loop_args[i]);
+  if (result_ptr != NULL)
+  {
+    result |= *result_ptr;
+    free(result_ptr);
+  }
 
   CPPUNIT_ASSERT(result == expectedResult);
 

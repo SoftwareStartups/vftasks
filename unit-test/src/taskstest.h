@@ -13,8 +13,36 @@
 
 extern "C"
 {
+#include "platform.h"
 #include <vftasks.h>
 }
+
+typedef struct
+{
+  int val;
+  bool result_needed;
+} square_args_t;
+
+typedef struct
+{
+  int start;
+  int stride;
+} loop_args_t;
+
+typedef struct
+{
+  int start;
+  int stride;
+  vftasks_pool_t *pool;
+  bool result_needed;
+} outer_loop_args_t;
+
+typedef struct
+{
+  int outer_loop_idx;
+  int start;
+  int stride;
+} inner_loop_args_t;
 
 class TasksTest : public CppUnit::TestFixture
 {
@@ -73,6 +101,10 @@ private:
   int submitGetNestedLoop(int numWorkers, int expectedResult);
 
   vftasks_pool_t *pool;  // pointer to a worker-thread pool
+  square_args_t *square_args;
+  loop_args_t *loop_args;
+  inner_loop_args_t *inner_loop_args;
+  outer_loop_args_t *outer_loop_args;
 };
 
 #endif  // TASKSTEST_H

@@ -14,7 +14,7 @@
 
 extern "C"
 {
-  #include "platform.h"
+#include "platform.h"
 }
 
 #ifdef _POSIX_SOURCE

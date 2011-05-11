@@ -11,3 +11,5 @@ Version 1.1.0 alpha
 -------------
 
 - added Windows support
+- fixed memory leaks in unit tests
+
