@@ -142,7 +142,7 @@ static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
   worker->chunk = (vftasks_chunk_t *)malloc(sizeof(vftasks_chunk_t));
   if (worker->chunk == NULL)
   {
-    free(worker->thread);
+    abort_on_fail("vftasks_create_pool: thread chunk allocation failed");
     return 1;
   }
 
