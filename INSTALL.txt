@@ -92,6 +92,13 @@ The build has been verified on:
   * Clean the build directory with:
     $ make clean
 
+  * Some additional example targets are generated:
+    - 2dsync: example showcasing the 2-D synchronization API;
+    - 2d: original source example for the 2dsync example;
+    - partitioned_loop: example showcasing the worker thread API;
+    - loop: original source example for the partitioned_loop example;
+    - streams: example showcasing the fifo channel API.
+
 
 4.1 Windows
 -----------------
@@ -104,3 +111,8 @@ The build has been verified on:
   * Depending on the presence of CppUnit and Doxygen, you see a number of projects,
     which can all be built and run using the IDE's interface.
 
+  * Some additional example targets are generated:
+    - 2dsync: example showcasing the 2-D synchronization API;
+    - 2d: original source example for the 2dsync example;
+    - partitioned_loop: example showcasing the worker thread API;
+    - loop: original source example for the partitioned_loop example.
