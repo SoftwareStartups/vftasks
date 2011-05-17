@@ -24,5 +24,8 @@ add_executable(loop src/loop.c)
 add_executable(partitioned_loop src/partitioned_loop.c)
 target_link_libraries(partitioned_loop ${libs})
 
-add_executable(streams src/streams.c)
-target_link_libraries(streams ${libs})
+if (${CMAKE_USE_PTHREADS_INIT})
+  add_executable(src/streams.c)
+  target_link_libraries(streams ${libs})
+endif (${CMAKE_USE_PTHREADS_INIT})
+
