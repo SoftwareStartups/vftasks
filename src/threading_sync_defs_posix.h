@@ -10,15 +10,20 @@
 #ifndef THREADING_SYNC_DEFS_POSIX_H
 #define THREADING_SYNC_DEFS_POSIX_H
 
-#include <unistd.h>
 #include <pthread.h>
 #include <semaphore.h>
 
 
-typedef pthread_t*  thread_t;
+typedef pthread_t* thread_t;
 typedef pthread_key_t tls_key_t;
 typedef pthread_mutex_t mutex_t;
 typedef sem_t semaphore_t;
+
+typedef struct
+{
+  pthread_cond_t cond;
+  mutex_t mutex;
+} cond_t;
 
 
 #define THREAD_CREATE(THREAD,FUNC,ARGS)               \
@@ -46,7 +51,6 @@ typedef sem_t semaphore_t;
 #define TLS_GET(KEY) pthread_getspecific(KEY)
 
 
-#define SLEEP(USECS) usleep(USECS * 10)
 #define WORKER_PROTO(FUNC,ARG) void *FUNC(void *ARG)
 #define THREAD_EXIT_SUCCESS NULL
 
@@ -54,12 +58,28 @@ typedef sem_t semaphore_t;
 #define MUTEX_LOCK(MUTEX) pthread_mutex_lock(&(MUTEX))
 #define MUTEX_UNLOCK(MUTEX) pthread_mutex_unlock(&(MUTEX))
 #define MUTEX_CREATE(MUTEX) pthread_mutex_init(&(MUTEX), NULL)
-#define MUTEX_DESTROY(MUTEX) pthread_mutex_destroy(&(MUTEX))
+
+#define MUTEX_DESTROY(MUTEX)                    \
+  {                                             \
+    MUTEX_UNLOCK(MUTEX);                        \
+    pthread_mutex_destroy(&(MUTEX));            \
+  }
 
 
-#define SEMAPHORE_CREATE(SEM,MAX) sem_init(&(SEM), 0, 0);
+#define SEMAPHORE_CREATE(SEM,MAX) sem_init(&(SEM), 0, 0)
 #define SEMAPHORE_DESTROY(SEM) sem_destroy(&(SEM))
 #define SEMAPHORE_WAIT(SEM) sem_wait(&(SEM))
 #define SEMAPHORE_POST(SEM) sem_post(&(SEM))
+
+
+#define COND_CREATE(COND) pthread_cond_init(&(COND.cond), NULL)
+#define COND_DESTROY(COND) pthread_cond_destroy(&(COND.cond))
+#define COND_WAIT(COND) pthread_cond_wait(&(COND.cond), &(COND.mutex))
+#define COND_SIGNAL(COND) pthread_cond_signal(&(COND.cond))
+#define COND_MUTEX_CREATE(COND) MUTEX_CREATE(COND.mutex)
+#define COND_MUTEX_DESTROY(COND) MUTEX_DESTROY(COND.mutex)
+#define COND_MUTEX_LOCK(COND) MUTEX_LOCK(COND.mutex)
+#define COND_MUTEX_UNLOCK(COND) MUTEX_UNLOCK(COND.mutex)
+
 
 #endif /* THREADING_SYNC_DEFS_POSIX_H */

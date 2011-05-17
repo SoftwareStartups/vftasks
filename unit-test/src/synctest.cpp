@@ -24,7 +24,7 @@ typedef struct
   int col; /* column iterator value in which the thread is waiting */
 } args_t;
 
-static mutex_t mutex;
+static cond_t cond;
 static volatile int set = 0;
 
 #define ASSERT_AND_CLEAN(mgr,ref)               \
@@ -45,9 +45,10 @@ static WORKER_PROTO(waitAndSet, raw_args)
   for (i = 0; i <= args->col; i++)
     vftasks_wait_2d(args->mgr, args->row, i);
 
-  MUTEX_LOCK(mutex);
+  COND_MUTEX_LOCK(cond);
   set = 1;
-  MUTEX_UNLOCK(mutex);
+  CPPUNIT_ASSERT(COND_SIGNAL(cond) == 0);
+  COND_MUTEX_UNLOCK(cond);
 
   return NULL;
 }
@@ -60,9 +61,16 @@ static int get()
 {
   int result;
 
-  MUTEX_LOCK(mutex);
-  result = set;
-  MUTEX_UNLOCK(mutex);
+  COND_MUTEX_LOCK(cond);
+  if (set == 0)
+  {
+    CPPUNIT_ASSERT(COND_WAIT(cond) == 0);
+    result = set;
+  }
+  else
+    result = set;
+
+  COND_MUTEX_UNLOCK(cond);
 
   return result;
 }
@@ -74,7 +82,8 @@ SyncTest::SyncTest()
 
 void SyncTest::setUp()
 {
-  MUTEX_CREATE(mutex);
+  COND_MUTEX_CREATE(cond);
+  COND_CREATE(cond);
   set = 0;
 }
 
@@ -83,8 +92,8 @@ void SyncTest::tearDown()
   if (this->sync_mgr != NULL)
     vftasks_destroy_2d_sync_mgr(this->sync_mgr);
 
-  MUTEX_UNLOCK(mutex);
-  MUTEX_DESTROY(mutex);
+  COND_MUTEX_DESTROY(cond);
+  COND_DESTROY(cond);
 }
 
 void SyncTest::testCreateManager()
@@ -168,19 +177,16 @@ void SyncTest::testSync(int rowDist, int colDist, int row, int col)
     for (j = 0; j < COLS; j++)
     {
       vftasks_signal_2d(this->sync_mgr, i, j);
-      SLEEP(5); // FIXME: not very robust
-      CPPUNIT_ASSERT(get() == 0);
+      CPPUNIT_ASSERT(set == 0);
     }
 
   for (j = 0; j < col-colDist; j++)
   {
     vftasks_signal_2d(this->sync_mgr, i, j);
-    SLEEP(5); // FIXME: not very robust
-    CPPUNIT_ASSERT(get() == 0);
+    CPPUNIT_ASSERT(set == 0);
   }
 
   vftasks_signal_2d(this->sync_mgr, i, j);
-  SLEEP(5); // FIXME: not very robust
   CPPUNIT_ASSERT(get() == 1);
 
   THREAD_JOIN(thread);
@@ -400,7 +406,6 @@ void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
   args.col = col;
   THREAD_CREATE(thread, waitAndSet, &args);
 
-  SLEEP(5); // FIXME: not very robust
   CPPUNIT_ASSERT(get() == 1);
 
   THREAD_JOIN(thread);
