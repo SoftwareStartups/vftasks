@@ -6,7 +6,7 @@ vfTasks
   - Inter-thread streaming communication channels
   - 2-D synchronization for parallelized loops
 
-  For more information, visit http://www.vectorfabrics.com/content/products/vftasks.
+  For more information, visit http://www.vectorfabrics.com/technology/vftasks.
   vfTasks is developed by Vector Fabrics (http://vectorfabrics.com) and 
   complements Vector Fabrics' vfThreaded-x86 and vfEmbedded products
   that help you parallelize a C application. 
@@ -23,7 +23,7 @@ Documentation and Support
 
   Examples on how to use vfTasks APIs are located in example/src.
   Note that the example in streams.c currently only runs on a POSIX-compliant system.
-  See http://www.vectorfabrics.com/content/products/vftasks for the example documentation
+  See http://www.vectorfabrics.com/technology/vftasks for the example documentation
   or example/doc for offline documentation.
 
 

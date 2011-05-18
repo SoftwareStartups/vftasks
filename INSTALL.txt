@@ -8,7 +8,7 @@ This file describes how to build, install & test the vfTasks library on your loc
 ====================
 
   1. Download vfTasks archive from the Vector Fabrics website
-     http://www.vectorfabrics.com/content/products/vftasks.
+     http://www.vectorfabrics.com/technology/vftasks.
 
   2. Unpack the vfTasks archive in a local directory.
      $ tar -zxvf vftasks-<version>.tar.gz
