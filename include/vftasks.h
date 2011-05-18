@@ -160,8 +160,12 @@
  * The following code snippet shows how to create a pool of 4 (idle) worker threads:
  * \code
  * vftasks_pool_t *worker_pool;
- * worker_pool = vftasks_create_pool(4);
+ * worker_pool = vftasks_create_pool(4, false);
  * \endcode
+ * The second option determines whether busy-waits are used when waiting for work
+ * or waiting for work to complete: when true, (expensive) busy wait loops are used,
+ * otherwise a semaphore mechanism is used, that requires fewer resources but introduces
+ * more overhead.
  *
  * \section sec_task_submit Submitting tasks
  * Once the worker threads are created,
