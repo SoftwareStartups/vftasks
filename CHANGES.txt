@@ -1,15 +1,19 @@
 vfTasks changelog
 ==================
 
-Version 1.0.0 alpha
--------------
+Version 1.1.1 alpha, May 18, 2011
+---------------------------------
 
-- initial public release, released April 7, 2011
+- fixed reliability of unit tests
+- minor cleanup
 
-
-Version 1.1.0 alpha
--------------
+Version 1.1.0 alpha, May 16 2011
+--------------------------------
 
 - added Windows support
 - fixed memory leaks in unit tests
 
+Version 1.0.0 alpha, April 7, 2011
+----------------------------------
+
+- initial public release
