@@ -7,11 +7,6 @@
  * Fabrics.
  */
 
-/* Example: usage of worker thread pools.
- * Computations on an array are partitioned into 4 tasks which are distributed
- * among a pool of worker threads.
- */
-
 #include <stdio.h>
 
 #define M 1024

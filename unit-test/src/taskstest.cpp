@@ -48,6 +48,7 @@ TasksTest::TasksTest()
   this->loop_args = NULL;
   this->inner_loop_args = NULL;
   this->outer_loop_args = NULL;
+  this->busy_wait = false;
 }
 
 void TasksTest::tearDown()
@@ -64,40 +65,45 @@ void TasksTest::tearDown()
     free(this->outer_loop_args);
 }
 
+vftasks_pool_t *TasksTest::createPool(int numWorkers)
+{
+  return vftasks_create_pool(numWorkers, this->busy_wait);
+}
+
 void TasksTest::testCreateEmptyPool()
 {
-  this->pool = vftasks_create_pool(0);
+  this->pool = createPool(0);
   CPPUNIT_ASSERT(this->pool == NULL);
 }
 
 void TasksTest::testCreateInvalidPool()
 {
-  this->pool = vftasks_create_pool(-1);
+  this->pool = createPool(-1);
   CPPUNIT_ASSERT(this->pool == NULL);
 }
 
 void TasksTest::testCreatePool1()
 {
-  vftasks_pool_t *pool = vftasks_create_pool(1);
+  vftasks_pool_t *pool = createPool(1);
   CPPUNIT_ASSERT(pool != NULL);
   vftasks_destroy_pool(pool);
 }
 
 void TasksTest::testCreatePool4()
 {
-  this->pool = vftasks_create_pool(4);
+  this->pool = createPool(4);
   CPPUNIT_ASSERT(pool != NULL);
 }
 
 void TasksTest::testDestroyPool()
 {
-  vftasks_pool_t *pool = vftasks_create_pool(4);
+  vftasks_pool_t *pool = createPool(4);
   vftasks_destroy_pool(pool);
 }
 
 void TasksTest::testSubmitEmptyTask()
 {
-  this->pool = vftasks_create_pool(1);
+  this->pool = createPool(1);
   CPPUNIT_ASSERT(vftasks_submit(this->pool, NULL, NULL, 0) != 0);
 }
 
@@ -107,7 +113,7 @@ void TasksTest::testSubmit()
   this->square_args->val = 3;
   this->square_args->result_needed = false;
 
-  this->pool = vftasks_create_pool(1);
+  this->pool = createPool(1);
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, 0) == 0);
 }
 
@@ -116,7 +122,7 @@ void TasksTest::testSubmitInvalidNumWorkers()
   this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
   this->square_args->val = 3;
   this->square_args->result_needed = false;
-  this->pool = vftasks_create_pool(1);
+  this->pool = createPool(1);
 
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, -1) != 0);
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, 1) != 0);
@@ -128,7 +134,7 @@ void TasksTest::testSubmitGet()
   this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
   this->square_args->val = 3;
   this->square_args->result_needed = true;
-  this->pool = vftasks_create_pool(1);
+  this->pool = createPool(1);
 
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, this->square_args, 0) == 0);
   CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result_ptr) == 0);
@@ -138,7 +144,7 @@ void TasksTest::testSubmitGet()
 
 void TasksTest::testGetNoWorkers()
 {
-  this->pool = vftasks_create_pool(1);
+  this->pool = createPool(1);
   CPPUNIT_ASSERT(vftasks_get(pool, NULL) != 0);
 }
 
@@ -172,7 +178,7 @@ void TasksTest::submitLoop()
 
 void TasksTest::testSubmitLoop()
 {
-  this->pool = vftasks_create_pool(N_PARTITIONS);
+  this->pool = createPool(N_PARTITIONS);
   this->submitLoop();
 }
 
@@ -181,7 +187,7 @@ void TasksTest::testSubmitGetLoop()
   int k;
   int *result;
 
-  this->pool = vftasks_create_pool(N_PARTITIONS);
+  this->pool = createPool(N_PARTITIONS);
   this->submitLoop();
 
   for (k = 0; k < N_PARTITIONS; k++)
@@ -193,7 +199,7 @@ void TasksTest::testTooManyGets()
   int k;
   int *result;
 
-  this->pool = vftasks_create_pool(N_PARTITIONS);
+  this->pool = createPool(N_PARTITIONS);
   this->submitLoop();
 
   for (k = 0; k < N_PARTITIONS; k++)
@@ -281,13 +287,13 @@ int TasksTest::submitNestedLoop(int numWorkers)
 
 void TasksTest::testSubmitNestedLoop()
 {
-  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  this->pool = createPool(N_PARTITIONS * N_PARTITIONS - 1);
   CPPUNIT_ASSERT(submitNestedLoop(N_PARTITIONS) == 0);
 }
 
 void TasksTest::testSubmitNestedLoopInvalidSubWorkers()
 {
-  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  this->pool = createPool(N_PARTITIONS * N_PARTITIONS - 1);
   CPPUNIT_ASSERT(submitNestedLoop(N_PARTITIONS+1) != 0);
 }
 
@@ -347,13 +353,13 @@ int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
 
 void TasksTest::testSubmitGetNestedLoop()
 {
-  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  this->pool = createPool(N_PARTITIONS * N_PARTITIONS - 1);
   CPPUNIT_ASSERT(submitGetNestedLoop(N_PARTITIONS, 0) == 0);
 }
 
 void TasksTest::testSubmitGetNestedLoopInvalidSubWorkers()
 {
-  this->pool = vftasks_create_pool(N_PARTITIONS * N_PARTITIONS - 1);
+  this->pool = createPool(N_PARTITIONS * N_PARTITIONS - 1);
   CPPUNIT_ASSERT(submitGetNestedLoop(N_PARTITIONS+1, 0) != 0);
 }
 

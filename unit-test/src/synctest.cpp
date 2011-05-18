@@ -24,7 +24,7 @@ typedef struct
   int col; /* column iterator value in which the thread is waiting */
 } args_t;
 
-static cond_t cond;
+static semaphore_t sem;
 static volatile int set = 0;
 
 #define ASSERT_AND_CLEAN(mgr,ref)               \
@@ -45,10 +45,8 @@ static WORKER_PROTO(waitAndSet, raw_args)
   for (i = 0; i <= args->col; i++)
     vftasks_wait_2d(args->mgr, args->row, i);
 
-  COND_MUTEX_LOCK(cond);
   set = 1;
-  CPPUNIT_ASSERT(COND_SIGNAL(cond) == 0);
-  COND_MUTEX_UNLOCK(cond);
+  SEMAPHORE_POST(sem);
 
   return NULL;
 }
@@ -59,20 +57,8 @@ static WORKER_PROTO(waitAndSet, raw_args)
  */
 static int get()
 {
-  int result;
-
-  COND_MUTEX_LOCK(cond);
-  if (set == 0)
-  {
-    CPPUNIT_ASSERT(COND_WAIT(cond) == 0);
-    result = set;
-  }
-  else
-    result = set;
-
-  COND_MUTEX_UNLOCK(cond);
-
-  return result;
+  SEMAPHORE_WAIT(sem);
+  return set;
 }
 
 SyncTest::SyncTest()
@@ -82,8 +68,7 @@ SyncTest::SyncTest()
 
 void SyncTest::setUp()
 {
-  COND_MUTEX_CREATE(cond);
-  COND_CREATE(cond);
+  SEMAPHORE_CREATE(sem, 1);
   set = 0;
 }
 
@@ -92,8 +77,7 @@ void SyncTest::tearDown()
   if (this->sync_mgr != NULL)
     vftasks_destroy_2d_sync_mgr(this->sync_mgr);
 
-  COND_MUTEX_DESTROY(cond);
-  COND_DESTROY(cond);
+  SEMAPHORE_DESTROY(sem);
 }
 
 void SyncTest::testCreateManager()

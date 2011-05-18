@@ -160,8 +160,12 @@
  * The following code snippet shows how to create a pool of 4 (idle) worker threads:
  * \code
  * vftasks_pool_t *worker_pool;
- * worker_pool = vftasks_create_pool(4);
+ * worker_pool = vftasks_create_pool(4, false);
  * \endcode
+ * The second option determines whether busy-waits are used when waiting for work
+ * or waiting for work to complete: when true, (expensive) busy wait loops are used,
+ * otherwise a semaphore mechanism is used, that requires fewer resources but introduces
+ * more overhead.
  *
  * \section sec_task_submit Submitting tasks
  * Once the worker threads are created,
@@ -274,6 +278,9 @@ typedef void *(vftasks_task_t)(void *);
 /** Creates a worker-thread pool of a given size.
  *
  *  @param  num_workers  The number of worker threads in the pool.
+ *  @param  busy_wait    When set to true, the workers will be in a busy-wait loop
+ *                       until work is submitted; otherwise they wait
+ *                       without consuming resources.
  *
  *  @return
  *    On success, a pointer to the pool.
@@ -283,7 +290,7 @@ typedef void *(vftasks_task_t)(void *);
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-vftasks_pool_t *vftasks_create_pool(int num_workers);
+vftasks_pool_t *vftasks_create_pool(int num_workers, bool_t busy_wait);
 
 /** Destroys a given worker-thread pool.
  *

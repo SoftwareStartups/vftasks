@@ -49,15 +49,18 @@ workers needs to be equal to or larger than the number of tasks.
 This implies that unlike in the standard worker thread design pattern
 no task queue is used.</p>
 <p>The example code divides the loop in 4 partitions. Therefore a pool of 3 workers
-is created, because one partition is kept in the main thread:
+is created, because one partition is kept in the main thread:</p>
 <pre>
     int main()
     {
-      pool = vftasks_create_pool(3);
+      pool = vftasks_create_pool(3, false);
       ...
       vftasks_destroy_pool(pool);
       ...
 </pre>
+<p>The second argument indicates whether busy-wait loops are used when waiting for
+work to be submitted and waiting for work to be finished. When set to false, these busy-wait
+loops are replaced by a semaphore mechanism.</p>
 
 <h3>Partition the loop over workers</h3>
 <p>Since the worker threads only accept functions with signature

@@ -14,36 +14,17 @@
 #include <semaphore.h>
 
 
-typedef pthread_t* thread_t;
+typedef pthread_t thread_t;
 typedef pthread_key_t tls_key_t;
 typedef pthread_mutex_t mutex_t;
 typedef sem_t semaphore_t;
 
-typedef struct
-{
-  pthread_cond_t cond;
-  mutex_t mutex;
-} cond_t;
 
+#define THREAD_CREATE(THREAD,FUNC,ARGS) \
+  pthread_create((pthread_t *)&(THREAD), NULL, FUNC, ARGS)
 
-#define THREAD_CREATE(THREAD,FUNC,ARGS)               \
-  ((THREAD) = (pthread_t *)malloc(sizeof(pthread_t)), \
-   pthread_create((THREAD), NULL, FUNC, (ARGS)))
-
-#define THREAD_DESTROY(THREAD) \
-  {                            \
-    if (THREAD != NULL)        \
-      free(THREAD);            \
-  }
-
-#define THREAD_JOIN(THREAD)                     \
-  {                                             \
-    pthread_join(*(THREAD), NULL);              \
-    THREAD_DESTROY(THREAD);                     \
-  }
-
-#define THREAD_EXIT pthread_exit
-
+#define THREAD_EXIT() pthread_exit(NULL)
+#define THREAD_JOIN(THREAD) pthread_join(THREAD, NULL)
 
 #define TLS_CREATE(KEY) pthread_key_create(&(KEY), NULL)
 #define TLS_DESTROY(KEY) pthread_key_delete(KEY)
@@ -66,20 +47,10 @@ typedef struct
   }
 
 
-#define SEMAPHORE_CREATE(SEM,MAX) sem_init(&(SEM), 0, 0)
-#define SEMAPHORE_DESTROY(SEM) sem_destroy(&(SEM))
-#define SEMAPHORE_WAIT(SEM) sem_wait(&(SEM))
-#define SEMAPHORE_POST(SEM) sem_post(&(SEM))
-
-
-#define COND_CREATE(COND) pthread_cond_init(&(COND.cond), NULL)
-#define COND_DESTROY(COND) pthread_cond_destroy(&(COND.cond))
-#define COND_WAIT(COND) pthread_cond_wait(&(COND.cond), &(COND.mutex))
-#define COND_SIGNAL(COND) pthread_cond_signal(&(COND.cond))
-#define COND_MUTEX_CREATE(COND) MUTEX_CREATE(COND.mutex)
-#define COND_MUTEX_DESTROY(COND) MUTEX_DESTROY(COND.mutex)
-#define COND_MUTEX_LOCK(COND) MUTEX_LOCK(COND.mutex)
-#define COND_MUTEX_UNLOCK(COND) MUTEX_UNLOCK(COND.mutex)
+#define SEMAPHORE_CREATE(SEM,MAX) sem_init((semaphore_t *)&(SEM), 0, 0)
+#define SEMAPHORE_DESTROY(SEM) sem_destroy((semaphore_t *)&(SEM))
+#define SEMAPHORE_WAIT(SEM) sem_wait((semaphore_t *)&(SEM))
+#define SEMAPHORE_POST(SEM) sem_post((semaphore_t *)&(SEM))
 
 
 #endif /* THREADING_SYNC_DEFS_POSIX_H */
