@@ -55,6 +55,9 @@ struct vftasks_worker_s
   vftasks_task_t *task;    /* task to be executed */
   void *args;              /* task arguments */
   void *result;            /* result of the task */
+  bool_t busy_wait;        /* the worker should spin or wait on a semaphore */
+  semaphore_t submit_sem;  /* wait for work semaphore used when busy_wait is false */
+  semaphore_t get_sem;     /* wait for join semaphore used when busy_wait is false */
 };
 
 /** worker-thread pool
@@ -63,6 +66,26 @@ struct vftasks_pool_s
 {
   tls_key_t key; /* TLS-key for the pool */
 };
+
+#define WAIT_FOR_WORK(WORKER)                              \
+  if ((WORKER)->busy_wait)                                 \
+    while ((WORKER)->is_active && (WORKER)->task == NULL); \
+  else                                                     \
+    SEMAPHORE_WAIT((WORKER)->submit_sem)
+
+#define WAIT_FOR_JOIN(WORKER)                              \
+  if ((WORKER)->busy_wait)                                 \
+    while (worker->task != NULL);                          \
+  else                                                     \
+    SEMAPHORE_WAIT((WORKER)->get_sem)
+
+#define SIGNAL_WORKER(WORKER)                   \
+  if (!(WORKER)->busy_wait)                     \
+    SEMAPHORE_POST((WORKER)->submit_sem)
+
+#define SIGNAL_CALLER(WORKER)                   \
+  if (!(WORKER)->busy_wait)                     \
+    SEMAPHORE_POST((WORKER)->get_sem)
 
 /* ***************************************************************************
  * Aborting on failure
@@ -94,13 +117,11 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
   /* store the pointer to the chunk of subsidiary workers in TLS */
   TLS_SET(worker->key, worker->chunk);
 
-  /* execute the worker loop for as long as the worker is active */
+  /* worker->is_active is volatile and updated from another thread */
   while (worker->is_active)
   {
-    /* spin until a task is assigned to the worker */
-    while (worker->is_active && worker->task == NULL)
-    {
-    }
+    /* wait for work to be submitted */
+    WAIT_FOR_WORK(worker);
 
     /* check whether the worker is still active */
     if (worker->is_active)
@@ -110,6 +131,9 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
 
       /* forget about the executed task*/
       worker->task = NULL;
+
+      /* notify caller that current work has finished */
+      SIGNAL_CALLER(worker);
     }
   }
 
@@ -133,6 +157,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 /** initialize worker
  */
 static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
+                                                bool_t busy_wait,
                                                 tls_key_t key)
 {
   /* store the TLS-key for the containing pool */
@@ -152,12 +177,34 @@ static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
   /* activate the worker and have it running on a freshly forked thread */
   worker->is_active = 1;
 
+  worker->busy_wait = busy_wait;
+  if (!busy_wait)
+  {
+    if (SEMAPHORE_CREATE(worker->submit_sem, 1) != 0)
+    {
+      abort_on_fail("vftasks_create_pool: semaphore creation failed");
+      return 1;
+    }
+    if (SEMAPHORE_CREATE(worker->get_sem, 1) != 0)
+    {
+      SEMAPHORE_DESTROY(worker->submit_sem);
+      abort_on_fail("vftasks_create_pool: semaphore creation failed");
+      return 1;
+    }
+  }
+
   if (THREAD_CREATE(worker->thread,
                     vftasks_worker_loop,
                     (vftasks_nv_worker_t *) worker) != 0)
   {
     free(worker->chunk);
-    THREAD_DESTROY(worker->thread);
+    if (worker->thread != NULL)
+      THREAD_DESTROY(worker->thread);
+    if (!busy_wait)
+    {
+      SEMAPHORE_DESTROY(worker->submit_sem);
+      SEMAPHORE_DESTROY(worker->get_sem);
+    }
     abort_on_fail("vftasks_create_pool: thread creation failed");
     return 1;
   }
@@ -173,7 +220,15 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
   /* deactivate the worker and join with the thread it is running on */
   worker->is_active = 0;
 
+  /* make sure the worker is not in wait state before joining */
+  SIGNAL_WORKER(worker);
   THREAD_JOIN(worker->thread);
+
+  if (!worker->busy_wait)
+  {
+    SEMAPHORE_DESTROY(worker->submit_sem);
+    SEMAPHORE_DESTROY(worker->get_sem);
+  }
 
   /* deallocate the chunk of subsidiary workers */
   free(worker->chunk);
@@ -182,7 +237,8 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
 /** create and activate a chunk of workers of a given size
  */
 static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
-                                                          tls_key_t key)
+                                                          tls_key_t key,
+                                                          bool_t busy_wait)
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
@@ -208,7 +264,7 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
   /* initialize the workers */
   for (worker = chunk->base; worker < chunk->limit; ++worker)
   {
-    if (vftasks_initialize_worker(worker, key) != 0)
+    if (vftasks_initialize_worker(worker, busy_wait, key) != 0)
     {
       for (worker_ = chunk->base; worker_ < worker; ++worker_)
       {
@@ -246,7 +302,7 @@ static void vftasks_destroy_workers(vftasks_chunk_t *chunk)
 
 /** create pool
  */
-vftasks_pool_t *vftasks_create_pool(int num_workers)
+vftasks_pool_t *vftasks_create_pool(int num_workers, bool_t busy_wait)
 {
   vftasks_pool_t *pool;    /* pointer to the pool */
   tls_key_t key;           /* TLS-key for the pool pointer */
@@ -272,7 +328,7 @@ vftasks_pool_t *vftasks_create_pool(int num_workers)
   pool->key = key;
 
   /* create the workers */
-  chunk = vftasks_create_workers(num_workers, key);
+  chunk = vftasks_create_workers(num_workers, key, busy_wait);
   if (chunk == NULL)
   {
     TLS_DESTROY(key);
@@ -366,6 +422,9 @@ int vftasks_submit(vftasks_pool_t *pool,
   worker->args = args;
   worker->task = task;
 
+  /* signal the (blocked) worker to continue execution */
+  SIGNAL_WORKER(worker);
+
   /* return 0 to indicate success */
   return 0;
 }
@@ -396,10 +455,8 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   /* retrieve the worker that is executing the oldest task */
   worker = chunk->head;
 
-  /* spin until the worker has completed the task */
-  while (worker->task != NULL)
-  {
-  }
+  /* wait until the task has finished execution and the result to become available */
+  WAIT_FOR_JOIN(worker);
 
   /* store the result */
   if (result != NULL) *result = worker->result;

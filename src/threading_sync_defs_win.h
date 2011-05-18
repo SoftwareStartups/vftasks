@@ -16,25 +16,19 @@ typedef HANDLE thread_t;
 typedef DWORD tls_key_t;
 typedef HANDLE mutex_t;
 typedef HANDLE semaphore_t;
-typedef HANDLE cond_t;
 
 
-#define THREAD_CREATE(THREAD,FUNC,ARG)                      \
-  ((((THREAD) = CreateThread(NULL, 0, FUNC, (ARG), 0, NULL)), (THREAD) == NULL))
+#define THREAD_CREATE(THREAD,FUNC,ARG) \
+  (!(((THREAD) = CreateThread(NULL, 0, FUNC, (ARG), 0, NULL)) != NULL))
 
-#define THREAD_DESTROY(THREAD)                  \
-  {                                             \
-    if (THREAD != NULL)                         \
-      CloseHandle(THREAD);                      \
-  }
+#define THREAD_DESTROY CloseHandle
+#define THREAD_EXIT ExitThread
 
 #define THREAD_JOIN(THREAD)                     \
   {                                             \
     WaitForSingleObject(THREAD, INFINITE);      \
     THREAD_DESTROY(THREAD);                     \
   }
-
-#define THREAD_EXIT ExitThread
 
 
 #define TLS_CREATE(KEY) ((KEY) = TlsAlloc(), (KEY) == TLS_OUT_OF_INDEXES ? 1 : 0)
@@ -62,14 +56,5 @@ typedef HANDLE cond_t;
 #define SEMAPHORE_DESTROY(SEM) CloseHandle(SEM)
 #define SEMAPHORE_WAIT(SEM) (!(WaitForSingleObject(SEM, INFINITE) == WAIT_OBJECT_0))
 #define SEMAPHORE_POST(SEM) (!ReleaseSemaphore(SEM, 1, NULL))
-
-#define COND_CREATE(COND) (COND = CreateEvent(NULL, FALSE, FALSE, NULL), !(COND != NULL))
-#define COND_DESTROY(COND) CloseHandle(COND)
-#define COND_WAIT(COND) (!(WaitForSingleObject(COND, INFINITE) == WAIT_OBJECT_0))
-#define COND_SIGNAL(COND) (!SetEvent(COND))
-#define COND_MUTEX_CREATE(COND)
-#define COND_MUTEX_DESTROY(COND)
-#define COND_MUTEX_LOCK(COND)
-#define COND_MUTEX_UNLOCK(COND)
 
 #endif /* THREADING_SYNC_DEFS_WIN_H */

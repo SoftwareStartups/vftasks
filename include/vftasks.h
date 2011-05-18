@@ -274,6 +274,9 @@ typedef void *(vftasks_task_t)(void *);
 /** Creates a worker-thread pool of a given size.
  *
  *  @param  num_workers  The number of worker threads in the pool.
+ *  @param  busy_wait    When set to true, the workers will be in a busy-wait loop
+ *                       until work is submitted; otherwise they wait
+ *                       without consuming resources.
  *
  *  @return
  *    On success, a pointer to the pool.
@@ -283,7 +286,7 @@ typedef void *(vftasks_task_t)(void *);
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-vftasks_pool_t *vftasks_create_pool(int num_workers);
+vftasks_pool_t *vftasks_create_pool(int num_workers, bool_t busy_wait);
 
 /** Destroys a given worker-thread pool.
  *
