@@ -1305,7 +1305,7 @@ static void testSuspendingWriter_suspendWriter(vftasks_wport_t *wport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_wport(wport)) = true;
 
   // exit writer thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 void StreamTest::testSuspendingWriter()
@@ -1348,7 +1348,7 @@ static WORKER_PROTO(testResumingWriter_write, arg)
 static void testResumingWriter_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testResumingWriter_resumeWriter(vftasks_wport_t *wport)
@@ -1387,7 +1387,7 @@ static WORKER_PROTO(testSuspendingReader_read, arg)
 {
   RPORT_FROM_VOID(rport, arg);
 
-  // try to read a token; the should cause the reader to be suspended
+  // try to read a token; this should cause the reader to be suspended
   vftasks_read_int32(rport);
 
   // exit writer thread
@@ -1400,7 +1400,7 @@ static void testSuspendingReader_suspendReader(vftasks_rport_t *rport)
   *(bool *)vftasks_get_chan_info(vftasks_chan_of_rport(rport)) = true;
 
   // exit writer thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 void StreamTest::testSuspendingReader()
@@ -1440,7 +1440,7 @@ static WORKER_PROTO(testResumingReader_read, arg)
 static void testResumingReader_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testResumingReader_resumeReader(vftasks_rport_t *rport)
@@ -1492,7 +1492,7 @@ static WORKER_PROTO(testHittingLowWaterMark_write, arg)
 static void testHittingLowWaterMark_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testHittingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
@@ -1553,7 +1553,7 @@ static WORKER_PROTO(testPassingLowWaterMark_write, arg)
 static void testPassingLowWaterMark_suspendWriter(vftasks_wport_t *wport)
 {
   // exit writer thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testPassingLowWaterMark_resumeWriter(vftasks_wport_t *wport)
@@ -1616,7 +1616,7 @@ static WORKER_PROTO(testHittingHighWaterMark_read, arg)
 static void testHittingHighWaterMark_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testHittingHighWaterMark_resumeReader(vftasks_rport_t *rport)
@@ -1674,7 +1674,7 @@ static WORKER_PROTO(testPassingHighWaterMark_read, arg)
 static void testPassingHighWaterMark_suspendReader(vftasks_rport_t *rport)
 {
   // exit reader thread
-  THREAD_EXIT(THREAD_EXIT_SUCCESS);
+  THREAD_EXIT();
 }
 
 static void testPassingHighWaterMark_resumeReader(vftasks_rport_t *rport)

@@ -14,25 +14,17 @@
 #include <semaphore.h>
 
 
-typedef pthread_t* thread_t;
+typedef pthread_t thread_t;
 typedef pthread_key_t tls_key_t;
 typedef pthread_mutex_t mutex_t;
 typedef sem_t semaphore_t;
 
 
-#define THREAD_CREATE(THREAD,FUNC,ARGS)               \
-  ((THREAD) = (pthread_t *)malloc(sizeof(pthread_t)), \
-   pthread_create((THREAD), NULL, FUNC, (ARGS)))
+#define THREAD_CREATE(THREAD,FUNC,ARGS) \
+  pthread_create((pthread_t *)&(THREAD), NULL, FUNC, ARGS)
 
-#define THREAD_DESTROY free
-#define THREAD_EXIT pthread_exit
-
-#define THREAD_JOIN(THREAD)                     \
-  {                                             \
-    pthread_join(*(THREAD), NULL);              \
-    THREAD_DESTROY(THREAD);                     \
-  }
-
+#define THREAD_EXIT() pthread_exit(NULL)
+#define THREAD_JOIN(THREAD) pthread_join(THREAD, NULL)
 
 #define TLS_CREATE(KEY) pthread_key_create(&(KEY), NULL)
 #define TLS_DESTROY(KEY) pthread_key_delete(KEY)

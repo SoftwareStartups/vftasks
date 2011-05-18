@@ -21,13 +21,13 @@ typedef HANDLE semaphore_t;
 #define THREAD_CREATE(THREAD,FUNC,ARG) \
   (!(((THREAD) = CreateThread(NULL, 0, FUNC, (ARG), 0, NULL)) != NULL))
 
-#define THREAD_DESTROY CloseHandle
-#define THREAD_EXIT ExitThread
+#define THREAD_EXIT_SUCCESS 0
+#define THREAD_EXIT() ExitThread(THREAD_EXIT_SUCCESS)
 
 #define THREAD_JOIN(THREAD)                     \
   {                                             \
     WaitForSingleObject(THREAD, INFINITE);      \
-    THREAD_DESTROY(THREAD);                     \
+    CloseHandle(THREAD);                        \
   }
 
 
@@ -38,10 +38,9 @@ typedef HANDLE semaphore_t;
 
 
 #define WORKER_PROTO(FUNC,ARG) DWORD WINAPI FUNC(LPVOID ARG)
-#define THREAD_EXIT_SUCCESS 0
 
 
-#define MUTEX_LOCK(MUTEX) WaitForSingleObject(MUTEX, INFINITE)
+#define MUTEX_LOCK(MUTEX) (!(WaitForSingleObject(MUTEX, INFINITE) == WAIT_OBJECT_0))
 #define MUTEX_UNLOCK(MUTEX) ReleaseMutex(MUTEX)
 #define MUTEX_CREATE(MUTEX) ((MUTEX) = CreateMutex(NULL, FALSE, NULL))
 

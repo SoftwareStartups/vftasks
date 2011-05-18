@@ -67,13 +67,13 @@ struct vftasks_pool_s
   tls_key_t key; /* TLS-key for the pool */
 };
 
-#define WAIT_FOR_WORK(WORKER)                              \
+#define WORKER_WAIT(WORKER)                                \
   if ((WORKER)->busy_wait)                                 \
     while ((WORKER)->is_active && (WORKER)->task == NULL); \
   else                                                     \
     SEMAPHORE_WAIT((WORKER)->submit_sem)
 
-#define WAIT_FOR_JOIN(WORKER)                              \
+#define CALLER_WAIT(WORKER)                                \
   if ((WORKER)->busy_wait)                                 \
     while (worker->task != NULL);                          \
   else                                                     \
@@ -121,7 +121,7 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
   while (worker->is_active)
   {
     /* wait for work to be submitted */
-    WAIT_FOR_WORK(worker);
+    WORKER_WAIT(worker);
 
     /* check whether the worker is still active */
     if (worker->is_active)
@@ -129,7 +129,7 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
       /* execute the assigned task and store the result */
       worker->result = worker->task(worker->args);
 
-      /* forget about the executed task*/
+      /* forget about the executed task */
       worker->task = NULL;
 
       /* notify caller that current work has finished */
@@ -153,6 +153,35 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 /* ***************************************************************************
  * Creation and destruction of worker-thread pools
  * ***************************************************************************/
+
+static __inline__ int vftasks_initialize_sync(vftasks_worker_t *worker)
+{
+  if (!worker->busy_wait)
+  {
+    if (SEMAPHORE_CREATE(worker->submit_sem, 1) != 0)
+    {
+      abort_on_fail("vftasks_create_pool: submit semaphore creation failed");
+      return 1;
+    }
+    if (SEMAPHORE_CREATE(worker->get_sem, 1) != 0)
+    {
+      SEMAPHORE_DESTROY(worker->submit_sem);
+      abort_on_fail("vftasks_create_pool: get semaphore creation failed");
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+static __inline__ void vftasks_destroy_sync(vftasks_worker_t *worker)
+{
+  if (!worker->busy_wait)
+  {
+    SEMAPHORE_DESTROY(worker->submit_sem);
+    SEMAPHORE_DESTROY(worker->get_sem);
+  }
+}
 
 /** initialize worker
  */
@@ -178,19 +207,12 @@ static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
   worker->is_active = 1;
 
   worker->busy_wait = busy_wait;
-  if (!busy_wait)
+
+  if (vftasks_initialize_sync(worker) != 0)
   {
-    if (SEMAPHORE_CREATE(worker->submit_sem, 1) != 0)
-    {
-      abort_on_fail("vftasks_create_pool: semaphore creation failed");
-      return 1;
-    }
-    if (SEMAPHORE_CREATE(worker->get_sem, 1) != 0)
-    {
-      SEMAPHORE_DESTROY(worker->submit_sem);
-      abort_on_fail("vftasks_create_pool: semaphore creation failed");
-      return 1;
-    }
+    free(worker->chunk);
+    abort_on_fail("vftasks_create_pool: semaphore creation failed");
+    return 1;
   }
 
   if (THREAD_CREATE(worker->thread,
@@ -198,13 +220,7 @@ static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
                     (vftasks_nv_worker_t *) worker) != 0)
   {
     free(worker->chunk);
-    if (worker->thread != NULL)
-      THREAD_DESTROY(worker->thread);
-    if (!busy_wait)
-    {
-      SEMAPHORE_DESTROY(worker->submit_sem);
-      SEMAPHORE_DESTROY(worker->get_sem);
-    }
+    vftasks_destroy_sync(worker);
     abort_on_fail("vftasks_create_pool: thread creation failed");
     return 1;
   }
@@ -223,12 +239,7 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
   /* make sure the worker is not in wait state before joining */
   SIGNAL_WORKER(worker);
   THREAD_JOIN(worker->thread);
-
-  if (!worker->busy_wait)
-  {
-    SEMAPHORE_DESTROY(worker->submit_sem);
-    SEMAPHORE_DESTROY(worker->get_sem);
-  }
+  vftasks_destroy_sync(worker);
 
   /* deallocate the chunk of subsidiary workers */
   free(worker->chunk);
@@ -456,7 +467,7 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   worker = chunk->head;
 
   /* wait until the task has finished execution and the result to become available */
-  WAIT_FOR_JOIN(worker);
+  CALLER_WAIT(worker);
 
   /* store the result */
   if (result != NULL) *result = worker->result;
