@@ -31,7 +31,7 @@ typedef HANDLE semaphore_t;
   }
 
 
-#define TLS_CREATE(KEY) ((KEY) = TlsAlloc(), (KEY) == TLS_OUT_OF_INDEXES ? 1 : 0)
+#define TLS_CREATE(KEY) (!(((KEY) = TlsAlloc()) != TLS_OUT_OF_INDEXES))
 #define TLS_DESTROY(KEY) TlsFree(KEY)
 #define TLS_SET(KEY,VAL) (!TlsSetValue(KEY, VAL))
 #define TLS_GET(KEY) TlsGetValue(KEY)
@@ -42,7 +42,7 @@ typedef HANDLE semaphore_t;
 
 #define MUTEX_LOCK(MUTEX) (!(WaitForSingleObject(MUTEX, INFINITE) == WAIT_OBJECT_0))
 #define MUTEX_UNLOCK(MUTEX) ReleaseMutex(MUTEX)
-#define MUTEX_CREATE(MUTEX) ((MUTEX) = CreateMutex(NULL, FALSE, NULL))
+#define MUTEX_CREATE(MUTEX) (!(((MUTEX) = CreateMutex(NULL, FALSE, NULL)) != NULL))
 
 #define MUTEX_DESTROY(MUTEX) \
   {                          \
@@ -51,7 +51,9 @@ typedef HANDLE semaphore_t;
   }
 
 
-#define SEMAPHORE_CREATE(SEM,MAX) ((SEM) = CreateSemaphore(NULL, 0, MAX, NULL))
+#define SEMAPHORE_CREATE(SEM,MAX) \
+  (!(((SEM) = CreateSemaphore(NULL, 0, MAX, NULL)) != NULL))
+
 #define SEMAPHORE_DESTROY(SEM) CloseHandle(SEM)
 #define SEMAPHORE_WAIT(SEM) (!(WaitForSingleObject(SEM, INFINITE) == WAIT_OBJECT_0))
 #define SEMAPHORE_POST(SEM) (!ReleaseSemaphore(SEM, 1, NULL))
