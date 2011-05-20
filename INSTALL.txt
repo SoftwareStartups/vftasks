@@ -99,6 +99,8 @@ The build has been verified on:
     - loop: original source example for the partitioned_loop example;
     - streams: example showcasing the fifo channel API.
 
+  Note: the vftasks library depends on the pthread library, so make sure to link
+  against it when using your own Makefiles.
 
 4.1 Windows
 -----------------

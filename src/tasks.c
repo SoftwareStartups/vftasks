@@ -79,11 +79,11 @@ struct vftasks_pool_s
   else                                                     \
     SEMAPHORE_WAIT((WORKER)->get_sem)
 
-#define SIGNAL_WORKER(WORKER)                   \
+#define WORKER_SIGNAL(WORKER)                   \
   if (!(WORKER)->busy_wait)                     \
     SEMAPHORE_POST((WORKER)->submit_sem)
 
-#define SIGNAL_CALLER(WORKER)                   \
+#define CALLER_SIGNAL(WORKER)                   \
   if (!(WORKER)->busy_wait)                     \
     SEMAPHORE_POST((WORKER)->get_sem)
 
@@ -133,7 +133,7 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
       worker->task = NULL;
 
       /* notify caller that current work has finished */
-      SIGNAL_CALLER(worker);
+      CALLER_SIGNAL(worker);
     }
   }
 
@@ -237,7 +237,7 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
   worker->is_active = 0;
 
   /* make sure the worker is not in wait state before joining */
-  SIGNAL_WORKER(worker);
+  WORKER_SIGNAL(worker);
   THREAD_JOIN(worker->thread);
   vftasks_destroy_sync(worker);
 
@@ -434,7 +434,7 @@ int vftasks_submit(vftasks_pool_t *pool,
   worker->task = task;
 
   /* signal the (blocked) worker to continue execution */
-  SIGNAL_WORKER(worker);
+  WORKER_SIGNAL(worker);
 
   /* return 0 to indicate success */
   return 0;
