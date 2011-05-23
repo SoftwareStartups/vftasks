@@ -15,7 +15,7 @@ install: check_env | $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR)
 
 test: | $(BUILDDIR)
 	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..
-	-cd $(BUILDDIR) && make unit_test run_tests
+	-cd $(BUILDDIR) && make unit_test run_test
 
 release: install
 	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz include lib
