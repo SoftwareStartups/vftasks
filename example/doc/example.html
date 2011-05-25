@@ -53,13 +53,13 @@ is created, because one partition is kept in the main thread:</p>
 <pre>
     int main()
     {
-      pool = vftasks_create_pool(3, false);
+      pool = vftasks_create_pool(3, 0);
       ...
       vftasks_destroy_pool(pool);
       ...
 </pre>
 <p>The second argument indicates whether busy-wait loops are used when waiting for
-work to be submitted and waiting for work to be finished. When set to false, these busy-wait
+work to be submitted and waiting for work to be finished. When set to 0, these busy-wait
 loops are replaced by a semaphore mechanism.</p>
 
 <h3>Partition the loop over workers</h3>

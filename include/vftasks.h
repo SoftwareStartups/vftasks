@@ -160,12 +160,12 @@
  * The following code snippet shows how to create a pool of 4 (idle) worker threads:
  * \code
  * vftasks_pool_t *worker_pool;
- * worker_pool = vftasks_create_pool(4, false);
+ * worker_pool = vftasks_create_pool(4, 0);
  * \endcode
  * The second option determines whether busy-waits are used when waiting for work
- * or waiting for work to complete: when true, (expensive) busy wait loops are used,
- * otherwise a semaphore mechanism is used, that requires fewer resources but introduces
- * more overhead.
+ * or waiting for work to complete: when set tonon-zero, (expensive)
+ * busy wait loops are used, otherwise a semaphore mechanism is used,
+ * that requires fewer resources but introduces more overhead.
  *
  * \section sec_task_submit Submitting tasks
  * Once the worker threads are created,
@@ -243,18 +243,6 @@
 #include <stdint.h>    /* for int8_t, int16_t, ... */
 #include <stddef.h>    /* for size_t, and NULL     */
 
-/* Must fix the stuff below. false needs to be included from stdbool.h
- * however including stdbool.h is tricky, such code does not even compile
- * in some systems, look for nptypes.h in google code search to see why. */
-#if defined(false) || defined(__cplusplus)
-typedef bool bool_t;
-#else
-typedef int bool_t;
-#define false 0
-#define true 1
-#endif
-
-
 /* ***************************************************************************
  * Worker thread pools
  * ***************************************************************************/
@@ -278,7 +266,7 @@ typedef void *(vftasks_task_t)(void *);
 /** Creates a worker-thread pool of a given size.
  *
  *  @param  num_workers  The number of worker threads in the pool.
- *  @param  busy_wait    When set to true, the workers will be in a busy-wait loop
+ *  @param  busy_wait    When set to non-zero, the workers will be in a busy-wait loop
  *                       until work is submitted; otherwise they wait
  *                       without consuming resources.
  *
@@ -290,7 +278,7 @@ typedef void *(vftasks_task_t)(void *);
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-vftasks_pool_t *vftasks_create_pool(int num_workers, bool_t busy_wait);
+vftasks_pool_t *vftasks_create_pool(int num_workers, int busy_wait);
 
 /** Destroys a given worker-thread pool.
  *
@@ -705,10 +693,10 @@ void *vftasks_get_chan_info(vftasks_chan_t *chan);
  *  @param  chan  A pointer to the channel.
  *
  *  @return
- *    If the channel supports shared-memory operations, true.
- *    If the channel does not support shared-memory operations, false.
+ *    If the channel supports shared-memory operations, non-zero.
+ *    If the channel does not support shared-memory operations, 0.
  */
-bool_t vftasks_shmem_supported(vftasks_chan_t *chan);
+int vftasks_shmem_supported(vftasks_chan_t *chan);
 
 /** Retrieves the number of tokens held by a given FIFO channel.
  *
@@ -762,10 +750,10 @@ vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport);
  *  @param  wport  A pointer to the port.
  *
  *  @return
- *    If the channel has tokens available, true.
- *    If the channel does not have tokens available, false. *
+ *    If the channel has tokens available, non-zero.
+ *    If the channel does not have tokens available, 0.
  */
-bool_t vftasks_room_available(vftasks_wport_t *wport);
+int vftasks_room_available(vftasks_wport_t *wport);
 
 /** Retrieves whether or not a connected FIFO channel has any tokens available
  *  for acquisition through a given read port.
@@ -773,10 +761,10 @@ bool_t vftasks_room_available(vftasks_wport_t *wport);
  *  @param  rport  A pointer to the port.
  *
  *  @return
- *    If the channel has tokens available, true.
- *    If the channel does not have tokens available, false.
+ *    If the channel has tokens available, non-zero.
+ *    If the channel does not have tokens available, 0.
  */
-bool_t vftasks_data_available(vftasks_rport_t *rport);
+int vftasks_data_available(vftasks_rport_t *rport);
 
 
 /* ***************************************************************************

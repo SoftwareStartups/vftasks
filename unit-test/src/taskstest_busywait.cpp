@@ -12,7 +12,7 @@ TasksTestBusyWait::TasksTestBusyWait()
 {
   TasksTest();
 
-  this->busy_wait = true;
+  this->busy_wait = 1;
 }
 
 

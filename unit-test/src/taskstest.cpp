@@ -48,7 +48,7 @@ TasksTest::TasksTest()
   this->loop_args = NULL;
   this->inner_loop_args = NULL;
   this->outer_loop_args = NULL;
-  this->busy_wait = false;
+  this->busy_wait = 0;
 }
 
 void TasksTest::tearDown()

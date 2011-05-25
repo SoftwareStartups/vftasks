@@ -53,11 +53,11 @@ struct vftasks_worker_s
 {
   /* WARNING: This structure has a very specific layout to enhance cache utilization
      and avoid false sharing, think twice before changing it. */
-  /* Is_active, busy_wait and task should go in a contiguous memory zone to
+  /* is_active, busy_wait and task should go in a contiguous memory zone to
      improve cache utilization when spinning */
   void *result;            /* result of the task */
   int is_active;           /* 0 if inactive, nonzero otherwise */
-  bool_t busy_wait;        /* the worker should spin or wait on a semaphore */
+  int busy_wait;           /* the worker should spin or wait on a semaphore */
   vftasks_task_t *task;    /* task to be executed */
   thread_t thread;         /* pointer to a handle for the thread on which the
                               worker is running */
@@ -200,7 +200,7 @@ static __inline__ void vftasks_destroy_sync(vftasks_worker_t *worker)
 /** initialize worker
  */
 static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
-                                                bool_t busy_wait,
+                                                int busy_wait,
                                                 tls_key_t key)
 {
   /* store the TLS-key for the containing pool */
@@ -263,7 +263,7 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
  */
 static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
                                                           tls_key_t key,
-                                                          bool_t busy_wait)
+                                                          int busy_wait)
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
@@ -327,7 +327,7 @@ static void vftasks_destroy_workers(vftasks_chunk_t *chunk)
 
 /** create pool
  */
-vftasks_pool_t *vftasks_create_pool(int num_workers, bool_t busy_wait)
+vftasks_pool_t *vftasks_create_pool(int num_workers, int busy_wait)
 {
   vftasks_pool_t *pool;    /* pointer to the pool */
   tls_key_t key;           /* TLS-key for the pool pointer */
