@@ -115,7 +115,7 @@ int test()
 int main()
 {
   /* one task is executed by the main thread */
-  pool = vftasks_create_pool(N_PARTITIONS-1, false);
+  pool = vftasks_create_pool(N_PARTITIONS-1, 0);
 
   go();
 

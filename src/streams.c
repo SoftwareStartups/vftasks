@@ -510,9 +510,9 @@ void *vftasks_get_chan_info(vftasks_chan_t *chan)
 
 /** check for shared-memory suppert
  */
-bool_t vftasks_shmem_supported(vftasks_chan_t *chan)
+int vftasks_shmem_supported(vftasks_chan_t *chan)
 {
-  return true;
+  return 1;
 }
 
 /** get #tokens
@@ -561,7 +561,7 @@ vftasks_chan_t *vftasks_chan_of_rport(vftasks_rport_t *rport)
 
 /** check for available room
  */
-bool_t vftasks_room_available(vftasks_wport_t *wport)
+int vftasks_room_available(vftasks_wport_t *wport)
 {
   vftasks_token_t *new_room;  /* new room pointer, if room would be acquired now */
 
@@ -574,16 +574,16 @@ bool_t vftasks_room_available(vftasks_wport_t *wport)
   {
     /* update cache and recheck with updated cache */
     wport->cached_state.head = wport->chan->state.head;
-    if (new_room == wport->cached_state.head) return false;
+    if (new_room == wport->cached_state.head) return 0;
   }
 
   /* buffer still has room */
-  return true;
+  return 1;
 }
 
 /** check for available data
  */
-bool_t vftasks_data_available(vftasks_rport_t *rport)
+int vftasks_data_available(vftasks_rport_t *rport)
 {
   vftasks_token_t* data;  /* current data pointer */
 
@@ -595,11 +595,11 @@ bool_t vftasks_data_available(vftasks_rport_t *rport)
   {
     /* update cache and recheck with updated cache */
     rport->cached_state.tail = rport->chan->state.tail;
-    if (data == rport->cached_state.tail) return false;
+    if (data == rport->cached_state.tail) return 0;
   }
 
   /* buffer contains data */
-  return true;
+  return 1;
 }
 
 /* ***************************************************************************
@@ -685,7 +685,7 @@ __inline__ vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
     }
 #endif /* VFPOLLING */
   }
-  while (true);
+  while (1);
 }
 
 /** release data
@@ -822,7 +822,7 @@ __inline__ vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
     }
 #endif /* VFPOLLING */
   }
-  while (true);
+  while (1);
 }
 
 /** release room

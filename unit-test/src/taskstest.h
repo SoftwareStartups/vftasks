@@ -96,7 +96,7 @@ public:
   void tearDown();
 
 protected:
-  bool_t busy_wait;
+  int busy_wait;
 
 private:
   vftasks_pool_t *createPool(int numWorkers);
