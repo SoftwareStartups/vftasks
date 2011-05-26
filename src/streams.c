@@ -54,11 +54,7 @@
 #include <stdio.h>    /* for printing to stderr */
 #include <string.h>   /* for memcpy */
 
-
-#ifndef __GNUC__            /* not all compilers recognize __inline__ */
-#define __inline__
-#endif
-
+#include "platform.h"
 
 #define MAX(X,Y)  (((X) > (Y)) ? (X) : (Y))
 
@@ -608,7 +604,7 @@ int vftasks_data_available(vftasks_rport_t *rport)
 
 /** acquire room (nonblocking)
  */
-__inline__ vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
+inline vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
 {
   vftasks_token_t *room;      /* the current room pointer */
   vftasks_token_t *new_room;  /* the new room pointer     */
@@ -640,7 +636,7 @@ __inline__ vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
 
 /** acquire room
  */
-__inline__ vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
+inline vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
 {
   vftasks_token_t *token;    /* pointer to acquired token */
 
@@ -690,8 +686,7 @@ __inline__ vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
 
 /** release data
  */
-__inline__ void vftasks_release_data(vftasks_wport_t *wport,
-                                    vftasks_token_t *token)
+inline void vftasks_release_data(vftasks_wport_t *wport, vftasks_token_t *token)
 {
   vftasks_chan_t *chan;       /* pointer to the channel   */
   vftasks_token_t* tail;      /* the current tail pointer */
@@ -746,7 +741,7 @@ __inline__ void vftasks_release_data(vftasks_wport_t *wport,
 
 /** acquire data (nonblocking)
  */
-__inline__ vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
+inline vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
 {
   vftasks_token_t *data;      /* the current data pointer */
   vftasks_token_t *new_data;  /* the new data pointer     */
@@ -778,7 +773,7 @@ __inline__ vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
 
 /** acquire data
  */
-__inline__ vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
+inline vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
 {
   vftasks_token_t *token;    /* pointer to the acquired token */
 
@@ -827,8 +822,7 @@ __inline__ vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
 
 /** release room
  */
-__inline__ void vftasks_release_room(vftasks_rport_t *rport,
-                                     vftasks_token_t *token)
+inline void vftasks_release_room(vftasks_rport_t *rport, vftasks_token_t *token)
 {
   vftasks_chan_t *chan;       /* pointer to the channel   */
   vftasks_token_t* head;      /* the current head pointer */
