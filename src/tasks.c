@@ -13,11 +13,6 @@
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */
 
-/* not all compilers recognize __inline__ */
-#ifndef __GNUC__
-#define __inline__
-#endif
-
 /* ***************************************************************************
  * Types
  * ***************************************************************************/
@@ -145,7 +140,7 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
  * Access to thread-local chunks of workers
  * ***************************************************************************/
 
-static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
+static inline vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
 {
   return (vftasks_chunk_t *)TLS_GET(pool->key);
 }
@@ -154,7 +149,7 @@ static __inline__ vftasks_chunk_t *vftasks_get_chunk(vftasks_pool_t *pool)
  * Creation and destruction of worker-thread pools
  * ***************************************************************************/
 
-static __inline__ int vftasks_initialize_sync(vftasks_worker_t *worker)
+static inline int vftasks_initialize_sync(vftasks_worker_t *worker)
 {
   if (!worker->busy_wait)
   {
@@ -174,7 +169,7 @@ static __inline__ int vftasks_initialize_sync(vftasks_worker_t *worker)
   return 0;
 }
 
-static __inline__ void vftasks_destroy_sync(vftasks_worker_t *worker)
+static inline void vftasks_destroy_sync(vftasks_worker_t *worker)
 {
   if (!worker->busy_wait)
   {
@@ -185,9 +180,9 @@ static __inline__ void vftasks_destroy_sync(vftasks_worker_t *worker)
 
 /** initialize worker
  */
-static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
-                                                int busy_wait,
-                                                tls_key_t key)
+static inline int vftasks_initialize_worker(vftasks_worker_t *worker,
+                                            int busy_wait,
+                                            tls_key_t key)
 {
   /* store the TLS-key for the containing pool */
   worker->key = key;
@@ -231,7 +226,7 @@ static __inline__ int vftasks_initialize_worker(vftasks_worker_t *worker,
 
 /** finalize worker
  */
-static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
+static inline void vftasks_finalize_worker(vftasks_worker_t *worker)
 {
   /* deactivate the worker and join with the thread it is running on */
   worker->is_active = 0;
@@ -247,9 +242,9 @@ static __inline__ void vftasks_finalize_worker(vftasks_worker_t *worker)
 
 /** create and activate a chunk of workers of a given size
  */
-static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
-                                                          tls_key_t key,
-                                                          int busy_wait)
+static inline vftasks_chunk_t *vftasks_create_workers(int num_workers,
+                                                      tls_key_t key,
+                                                      int busy_wait)
 {
   vftasks_chunk_t *chunk;              /* pointer to the chunk of workers */
   vftasks_worker_t *worker, *worker_;  /* pointers to workers in the chunk */
