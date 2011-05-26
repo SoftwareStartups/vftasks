@@ -13,11 +13,6 @@
 #include <stdlib.h>     /* for malloc, free, and abort */
 #include <stdio.h>      /* for printing to stderr */
 
-/* not all compilers recognize __inline__ */
-#ifndef __GNUC__
-#define __inline__
-#endif
-
 /* ***************************************************************************
  * Two-dimensional synchronization between tasks
  * ***************************************************************************/

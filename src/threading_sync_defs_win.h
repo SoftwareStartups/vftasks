@@ -12,6 +12,10 @@
 
 #include <windows.h>
 
+#ifndef __cplusplus
+#define inline __inline
+#endif
+
 typedef HANDLE thread_t;
 typedef DWORD tls_key_t;
 typedef HANDLE mutex_t;
