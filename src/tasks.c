@@ -18,6 +18,10 @@
 #define __inline__
 #endif
 
+/* Used in structures to enforce entries falling into different cache
+   lines (in order to avoid false sharing) */
+#define MAX_CACHE_LINE_SIZE 256
+
 /* ***************************************************************************
  * Types
  * ***************************************************************************/
@@ -47,17 +51,27 @@ typedef struct vftasks_chunk_s
  */
 struct vftasks_worker_s
 {
+  /* WARNING: This structure has a very specific layout to enhance cache utilization
+     and avoid false sharing, think twice before changing it. */
+  /* Is_active, busy_wait and task should go in a contiguous memory zone to
+     improve cache utilization when spinning */
+  void *result;            /* result of the task */
   int is_active;           /* 0 if inactive, nonzero otherwise */
+  int busy_wait;           /* the worker should spin or wait on a semaphore */
+  vftasks_task_t *task;    /* task to be executed */
   thread_t thread;         /* pointer to a handle for the thread on which the
                               worker is running */
   tls_key_t key;           /* the TLS-key of the containing pool */
-  vftasks_chunk_t *chunk;  /* pointer to a chunk of subsidiary workers */
-  vftasks_task_t *task;    /* task to be executed */
+
+  /* Avoid false sharing between (args and result) and (chunk and result) */
+  char padding1[MAX_CACHE_LINE_SIZE];
   void *args;              /* task arguments */
-  void *result;            /* result of the task */
-  int busy_wait;           /* the worker should spin or wait on a semaphore */
+  vftasks_chunk_t *chunk;  /* pointer to a chunk of subsidiary workers */
   semaphore_t submit_sem;  /* wait for work semaphore used when busy_wait is 0 */
   semaphore_t get_sem;     /* wait for join semaphore used when busy_wait is 0 */
+
+  /* Avoid false sharing between different tasks */
+  char padding2[MAX_CACHE_LINE_SIZE];
 };
 
 /** worker-thread pool
