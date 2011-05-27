@@ -604,7 +604,7 @@ int vftasks_data_available(vftasks_rport_t *rport)
 
 /** acquire room (nonblocking)
  */
-inline vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
+vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
 {
   vftasks_token_t *room;      /* the current room pointer */
   vftasks_token_t *new_room;  /* the new room pointer     */
@@ -636,7 +636,7 @@ inline vftasks_token_t *vftasks_acquire_room_nb(vftasks_wport_t *wport)
 
 /** acquire room
  */
-inline vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
+vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
 {
   vftasks_token_t *token;    /* pointer to acquired token */
 
@@ -686,7 +686,7 @@ inline vftasks_token_t *vftasks_acquire_room(vftasks_wport_t *wport)
 
 /** release data
  */
-inline void vftasks_release_data(vftasks_wport_t *wport, vftasks_token_t *token)
+void vftasks_release_data(vftasks_wport_t *wport, vftasks_token_t *token)
 {
   vftasks_chan_t *chan;       /* pointer to the channel   */
   vftasks_token_t* tail;      /* the current tail pointer */
@@ -741,7 +741,7 @@ inline void vftasks_release_data(vftasks_wport_t *wport, vftasks_token_t *token)
 
 /** acquire data (nonblocking)
  */
-inline vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
+vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
 {
   vftasks_token_t *data;      /* the current data pointer */
   vftasks_token_t *new_data;  /* the new data pointer     */
@@ -773,7 +773,7 @@ inline vftasks_token_t *vftasks_acquire_data_nb(vftasks_rport_t *rport)
 
 /** acquire data
  */
-inline vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
+vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
 {
   vftasks_token_t *token;    /* pointer to the acquired token */
 
@@ -822,7 +822,7 @@ inline vftasks_token_t *vftasks_acquire_data(vftasks_rport_t *rport)
 
 /** release room
  */
-inline void vftasks_release_room(vftasks_rport_t *rport, vftasks_token_t *token)
+void vftasks_release_room(vftasks_rport_t *rport, vftasks_token_t *token)
 {
   vftasks_chan_t *chan;       /* pointer to the channel   */
   vftasks_token_t* head;      /* the current head pointer */

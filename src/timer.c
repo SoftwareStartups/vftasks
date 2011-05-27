@@ -17,14 +17,14 @@
 
 #include <time.h>
 
-inline void vftasks_timer_start(uint64_t *start)
+void vftasks_timer_start(uint64_t *start)
 {
   struct timespec tp;
   clock_gettime(CLOCK_REALTIME, &tp);
   *start = tp.tv_sec * 1000000000L + tp.tv_nsec;
 }
 
-inline uint64_t vftasks_timer_stop(uint64_t *start)
+uint64_t vftasks_timer_stop(uint64_t *start)
 {
   struct timespec tp;
   uint64_t stop;
@@ -39,7 +39,7 @@ inline uint64_t vftasks_timer_stop(uint64_t *start)
 
 #include <windows.h>
 
-inline void vftasks_timer_start(uint64_t *start)
+void vftasks_timer_start(uint64_t *start)
 {
   int rc;
   LARGE_INTEGER val;
@@ -49,7 +49,7 @@ inline void vftasks_timer_start(uint64_t *start)
   *start = val.QuadPart;
 }
 
-inline uint64_t vftasks_timer_stop(uint64_t *start)
+uint64_t vftasks_timer_stop(uint64_t *start)
 {
   LARGE_INTEGER val, freq;
   double resolution;
