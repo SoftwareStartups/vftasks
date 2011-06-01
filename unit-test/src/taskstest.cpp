@@ -10,9 +10,9 @@
 
 #include <cstdlib>  // for malloc, free
 
-#define ROWS 32
-#define COLS 32
-#define N_PARTITIONS 4
+#define ROWS 8
+#define COLS 8
+#define N_PARTITIONS 2
 
 volatile static int array[ROWS];
 volatile static int matrix[ROWS][COLS];
@@ -317,36 +317,39 @@ int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
     this->outer_loop_args[i].stride = N_PARTITIONS;
     this->outer_loop_args[i].pool = this->pool;
     this->outer_loop_args[i].result_needed = true;
-    vftasks_submit(this->pool, outer_loop, &this->outer_loop_args[i], numWorkers);
+    result |= vftasks_submit(this->pool, outer_loop, &this->outer_loop_args[i], numWorkers);
   }
 
-  for (i = 0; i < N_PARTITIONS-1; i++)
+  if (result == 0)
   {
+    for (i = 0; i < N_PARTITIONS-1; i++)
+    {
+      result_ptr = NULL;
+      results[i] = vftasks_get(this->pool, (void **)&result_ptr);
+      if (result_ptr != NULL)
+      {
+        result |= *result_ptr;
+        free(result_ptr);
+      }
+    }
+
+    this->outer_loop_args[i].start = i;
+    this->outer_loop_args[i].stride = N_PARTITIONS;
+    this->outer_loop_args[i].pool = this->pool;
+    this->outer_loop_args[i].result_needed = true;
     result_ptr = NULL;
-    results[i] = vftasks_get(this->pool, (void **)&result_ptr);
+    result_ptr = (int *)outer_loop(&this->outer_loop_args[i]);
     if (result_ptr != NULL)
     {
       result |= *result_ptr;
       free(result_ptr);
     }
+
+    CPPUNIT_ASSERT(result == expectedResult);
+
+    for (i = 0; i < N_PARTITIONS-1; i++)
+      result |= results[i];
   }
-
-  this->outer_loop_args[i].start = i;
-  this->outer_loop_args[i].stride = N_PARTITIONS;
-  this->outer_loop_args[i].pool = this->pool;
-  this->outer_loop_args[i].result_needed = true;
-  result_ptr = NULL;
-  result_ptr = (int *)outer_loop(&this->outer_loop_args[i]);
-  if (result_ptr != NULL)
-  {
-    result |= *result_ptr;
-    free(result_ptr);
-  }
-
-  CPPUNIT_ASSERT(result == expectedResult);
-
-  for (i = 0; i < N_PARTITIONS-1; i++)
-    result |= results[i];
 
   return result;
 }

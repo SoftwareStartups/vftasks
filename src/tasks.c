@@ -42,9 +42,7 @@ typedef struct vftasks_chunk_s
   vftasks_worker_t *base;   /* pointer to the first worker in the chunk */
   vftasks_worker_t *limit;  /* pointer to the first byte beyond the last worker in the
                                chunk */
-  vftasks_worker_t *head;   /* pointer to the worker in the chunk that is executing the
-                               oldest task */
-  vftasks_worker_t *tail;   /* pointer to the next available worker in the chunk */
+  vftasks_worker_t *next;   /* pointer to the next available worker in the chunk */
 } vftasks_chunk_t;
 
 /** worker
@@ -67,8 +65,8 @@ struct vftasks_worker_s
   char padding1[MAX_CACHE_LINE_SIZE];
   void *args;              /* task arguments */
   vftasks_chunk_t *chunk;  /* pointer to a chunk of subsidiary workers */
-  semaphore_t submit_sem;  /* wait for work semaphore used when busy_wait is false */
-  semaphore_t get_sem;     /* wait for join semaphore used when busy_wait is false */
+  semaphore_t submit_sem;  /* wait for work semaphore used when busy_wait is 0 */
+  semaphore_t get_sem;     /* wait for join semaphore used when busy_wait is 0 */
 
   /* Avoid false sharing between different tasks */
   char padding2[MAX_CACHE_LINE_SIZE];
@@ -283,14 +281,16 @@ static __inline__ vftasks_chunk_t *vftasks_create_workers(int num_workers,
     return NULL;
   }
   chunk->limit = chunk->base + num_workers;
-  chunk->head = chunk->base;
-  chunk->tail = chunk->base;
+  chunk->next = chunk->base;
 
   /* initialize the workers */
   for (worker = chunk->base; worker < chunk->limit; ++worker)
   {
     if (vftasks_initialize_worker(worker, busy_wait, key) != 0)
     {
+      /* no get calls have been done at this point so the workers are only waiting
+       * on their internal semaphore, which is released by finalize itself.
+       */
       for (worker_ = chunk->base; worker_ < worker; ++worker_)
       {
         vftasks_finalize_worker(worker_);
@@ -312,8 +312,8 @@ static void vftasks_destroy_workers(vftasks_chunk_t *chunk)
 {
   vftasks_worker_t *worker;  /* pointer to a worker in the chunk */
 
-  /* finalize the workers */
-  for (worker = chunk->base; worker < chunk->limit; ++worker)
+  /* finalize the workers lifo style */
+  for (worker = chunk->limit-1; worker >= chunk->base; worker--)
   {
     vftasks_finalize_worker(worker);
   }
@@ -403,6 +403,7 @@ int vftasks_submit(vftasks_pool_t *pool,
   vftasks_chunk_t *chunk;    /* pointer to the chunk of subsidiary workers that the
                                 calling thread has at its disposal */
   vftasks_worker_t *worker;  /* pointer to the worker that is to execute the task */
+  vftasks_worker_t *current;
 
   if (task == NULL)
   {
@@ -425,23 +426,24 @@ int vftasks_submit(vftasks_pool_t *pool,
   }
 
   /* check that there are enough workers available to execute the task */
-  if (chunk->tail + num_workers >= chunk->limit)
+  if (chunk->next + num_workers >= chunk->limit)
   {
     abort_on_fail("vftasks_submit: insufficient subsidiary workers");
     return 1;
   }
 
+  current = chunk->next;
+
   /* select the worker that is to execute the task */
-  worker = chunk->tail;
+  worker = current + num_workers;
 
-  /* assign the worker its subsididary workers */
-  worker->chunk->base = worker + 1;
-  worker->chunk->limit = worker + num_workers + 1;
-  worker->chunk->head = worker + 1;
-  worker->chunk->tail = worker + 1;
+  /* assign the worker its subsididary chunk */
+  worker->chunk->base = current;
+  worker->chunk->limit = current + num_workers;
+  worker->chunk->next = current;
 
-  /* update the chunk of subsidiary workers of the calling thread */
-  chunk->tail = worker + num_workers + 1;
+  /* update the pointer to the first available worker in this chunk */
+  chunk->next = worker + 1;
 
   /* assign the task and the corresponding arguments to the worker */
   worker->args = args;
@@ -471,14 +473,14 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   }
 
   /* check that there is a task being executed */
-  if (chunk->head >= chunk->tail)
+  if (chunk->next <= chunk->base)
   {
     abort_on_fail("vftasks_get: no executing task");
     return 1;
   }
 
-  /* retrieve the worker that is executing the oldest task */
-  worker = chunk->head;
+  /* retrieve the worker that is executing most recently submitted task in this chunk */
+  worker = chunk->next - 1;
 
   /* wait until the task has finished execution and the result to become available */
   CALLER_WAIT(worker);
@@ -486,16 +488,10 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   /* store the result */
   if (result != NULL) *result = worker->result;
 
-  /* update the chunk of subsidiary workers of the calling thread */
-  chunk->head = worker->chunk->limit;
-
-  /* if the all outstanding tasks have been executed, reset the chunk of subsidiary
-     workers */
-  if (chunk->head == chunk->tail)
-  {
-    chunk->head = chunk->base;
-    chunk->tail = chunk->base;
-  }
+  /* release the current worker and its subsidiary chunk
+   * it is assumed that all subsidiary workers have joined
+   */
+  chunk->next = worker->chunk->base;
 
   /* return 0 to indicate success */
   return 0;
