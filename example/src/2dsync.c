@@ -34,7 +34,7 @@ typedef struct
   int stride;
 } task_t;
 
-void *task(void *raw_args)
+void task(void *raw_args)
 {
   task_t *args = (task_t *)raw_args;
 
@@ -60,8 +60,6 @@ void *task(void *raw_args)
       vftasks_signal_2d(sync_mgr, i, j);
     }
   }
-
-  return NULL;
 }
 
 void go()
@@ -90,7 +88,7 @@ void go()
   /* wait for the workers to finish */
   for (k = 0; k < N_PARTITIONS-1; k++)
   {
-    vftasks_get(pool, NULL);
+    vftasks_get(pool);
   }
 
   vftasks_destroy_2d_sync_mgr(sync_mgr);

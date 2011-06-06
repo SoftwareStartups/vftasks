@@ -8,9 +8,9 @@
 //
 #include "taskstest_busywait.h"
 
-TasksTestBusyWait::TasksTestBusyWait()
+void TasksTestBusyWait::setUp()
 {
-  TasksTest();
+  TasksTest::setUp();
 
   this->busy_wait = 1;
 }

@@ -64,7 +64,7 @@ loops are replaced by a semaphore mechanism.</p>
 
 <h3>Partition the loop over workers</h3>
 <p>Since the worker threads only accept functions with signature
-<code>void *task(void *args)</code>,
+<code>void task(void *args)</code>,
 the loop needs to be extracted into a function with this prototype. Some additional info
 needs to be passed to the task: the loop partition start index and the loop partition length.
 This additional info is packed in a struct that can be passed to the
@@ -80,12 +80,12 @@ This additional info is packed in a struct that can be passed to the
     {
       args&#91;k&#93;.start = k * M / N_PARTITIONS;
       args&#91;k&#93;.length = M / N_PARTITIONS;
-      vftasks_submit(pool, task, &amp;args&#91;k&#93;, 0);
+      rc |= vftasks_submit(pool, task, &amp;args&#91;k&#93;, 0);
     }
     
     args&#91;k&#93;.start = k * M / N_PARTITIONS;
     args&#91;k&#93;.length = M / N_PARTITIONS;
-    results&#91;k&#93; = task(&amp;args&#91;k&#93;);
+    task(&amp;args&#91;k&#93;);
 </pre>
 <p>Note that one partition is kept in the calling thread to prevent it from idling
 and not waste thread resources. The partitioned loop iteration space now looks like this:</p>
@@ -95,17 +95,13 @@ and not waste thread resources. The partitioned loop iteration space now looks l
       ...
 </pre>
 
-<h3>Collecting task results</h3>
-<p>In this example, the task returns the length of the loop partition that
-has been worked on. Note that this result cannot be put in a task-local variable, because
-it will still be used when the task function runs out of scope.</p>
-<p>The <code>vftasks_get</code> function stores a pointer to the result in the second
-argument:</p>
+<h3>Waiting for task completion</h3>
+<p>After submitting tasks to the workers, the <code>vftasks_get</code> function
+can be used to wait for the workers to finish their tasks.<p>
 <pre>
-    vftasks_get(pool, (void **)&amp;results&#91;k&#93;);
+    vftasks_get(pool);
 </pre>
-<p>Do not forget to free the resources used for the result when they are no
-longer needed.</p>
+<p>A call to this function will wait for the most recently submitted task to finish.</p>
 
 <h2><a name="sync">2D task synchronization</a></h2>
 
@@ -192,8 +188,7 @@ in order to prevent deadlocks. The loop iteration space now looks as follows:</p
 
 
 <p>After submitting all work, the calling task/thread will wait for the tasks to complete
-by calling <code>vftasks_get</code> for each call to <code>vftasks_submit</code>. Note that
-this task does not return any result, so <code>NULL</code> can be passed as a result pointer.</p>
+by calling <code>vftasks_get</code> for each call to <code>vftasks_submit</code>.</p>
 
 <h3>Synchronizing the loop-carried dependency</h3>
 <p>In order to have a functionally correct example, the loop-carried dependency still

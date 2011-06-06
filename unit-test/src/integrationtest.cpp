@@ -31,7 +31,7 @@ void IntegrationTest::tearDown()
 
 // A task-like function that contains the inner loop part of the outer loop
 // described below.
-static void *inner_loop(void *raw_args)
+static void inner_loop(void *raw_args)
 {
   int i, j;
   inner_loop_args_t *args = (inner_loop_args_t *)raw_args;
@@ -39,16 +39,15 @@ static void *inner_loop(void *raw_args)
   i = args->outer_loop_idx;
   for (j = args->start; j < COLS; j += args->stride)
   {
+    // these waits cause the actual deadlocks as a result of the old fifo scheduling
     vftasks_wait_2d(args->sync_mgr, i, j);
     vftasks_signal_2d(args->sync_mgr, i, j);
   }
-
-  return NULL;
 }
 
 // A task-like function that contains a nested loop.
 // The inner loop is called by submitting subsidiary tasks.
-static void *outer_loop(void *raw_args)
+static void outer_loop(void *raw_args)
 {
   int i, j, result = 0;
   inner_loop_args_t inner_args[N_PARTITIONS];
@@ -72,12 +71,10 @@ static void *outer_loop(void *raw_args)
     inner_loop(&inner_args[j]);
 
     for (j = 0; j < N_PARTITIONS-1; j++)
-      result |= vftasks_get(args->pool, NULL);
+      result |= vftasks_get(args->pool);
   }
 
   CPPUNIT_ASSERT(result == 0);
-
-  return NULL;
 }
 
 void IntegrationTest::testDeadlock()
@@ -101,7 +98,7 @@ void IntegrationTest::testDeadlock()
   outer_loop(&this->outer_args[i]);
 
   for (i = 0; i < N_PARTITIONS-1; i++)
-    result |= vftasks_get(this->pool, NULL);
+    result |= vftasks_get(this->pool);
 }
 
 // register fixture

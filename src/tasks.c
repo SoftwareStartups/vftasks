@@ -53,7 +53,6 @@ struct vftasks_worker_s
      and avoid false sharing, think twice before changing it. */
   /* Is_active, busy_wait and task should go in a contiguous memory zone to
      improve cache utilization when spinning */
-  void *result;            /* result of the task */
   int is_active;           /* 0 if inactive, nonzero otherwise */
   int busy_wait;           /* the worker should spin or wait on a semaphore */
   vftasks_task_t *task;    /* task to be executed */
@@ -61,15 +60,13 @@ struct vftasks_worker_s
                               worker is running */
   tls_key_t key;           /* the TLS-key of the containing pool */
 
-  /* Avoid false sharing between (args and result) and (chunk and result) */
-  char padding1[MAX_CACHE_LINE_SIZE];
   void *args;              /* task arguments */
   vftasks_chunk_t *chunk;  /* pointer to a chunk of subsidiary workers */
   semaphore_t submit_sem;  /* wait for work semaphore used when busy_wait is 0 */
   semaphore_t get_sem;     /* wait for join semaphore used when busy_wait is 0 */
 
   /* Avoid false sharing between different tasks */
-  char padding2[MAX_CACHE_LINE_SIZE];
+  char padding[MAX_CACHE_LINE_SIZE];
 };
 
 /** worker-thread pool
@@ -138,8 +135,8 @@ static WORKER_PROTO(vftasks_worker_loop, arg)
     /* check whether the worker is still active */
     if (worker->is_active)
     {
-      /* execute the assigned task and store the result */
-      worker->result = worker->task(worker->args);
+      /* execute the assigned task */
+      worker->task(worker->args);
 
       /* forget about the executed task */
       worker->task = NULL;
@@ -456,9 +453,9 @@ int vftasks_submit(vftasks_pool_t *pool,
   return 0;
 }
 
-/** retrieve the result of an executed task
+/** block until the most recently submitted task finishes
  */
-int vftasks_get(vftasks_pool_t *pool, void **result)
+int vftasks_get(vftasks_pool_t *pool)
 {
   vftasks_chunk_t *chunk;    /* pointer to the chunk of subsidiary workers that the
                                 calling thread has at its disposal */
@@ -482,11 +479,8 @@ int vftasks_get(vftasks_pool_t *pool, void **result)
   /* retrieve the worker that is executing most recently submitted task in this chunk */
   worker = chunk->next - 1;
 
-  /* wait until the task has finished execution and the result to become available */
+  /* wait until the task has finished execution */
   CALLER_WAIT(worker);
-
-  /* store the result */
-  if (result != NULL) *result = worker->result;
 
   /* release the current worker and its subsidiary chunk
    * it is assumed that all subsidiary workers have joined

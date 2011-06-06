@@ -19,29 +19,15 @@ volatile static int matrix[ROWS][COLS];
 
 // a task that computes the square of an integer
 // can be used as a task without subsidiary workers
-static void *square(void *raw_args)
+static void square(void *raw_args)
 {
-  square_args_t *arg;     // a pointer to the argument
-  int result;
-
-  // cast the argument pointer to a pointer of the proper type
-  arg = (square_args_t *)raw_args;
+  square_args_t *arg = (square_args_t *)raw_args;
 
   // compute the square of the argument and store in the memory allocated for the result
-  result = arg->val * arg->val;
-
-  if (arg->result_needed)
-  {
-    int *result_ptr = (int *)malloc(sizeof(int));
-    *result_ptr = result;
-    return result_ptr;
-  }
-
-  // return a pointer to the result
-  return NULL;
+  arg->result = arg->val * arg->val;
 }
 
-TasksTest::TasksTest()
+void TasksTest::setUp()
 {
   this->pool = NULL;
   this->square_args = NULL;
@@ -55,13 +41,13 @@ void TasksTest::tearDown()
 {
   if (this->pool != NULL)
     vftasks_destroy_pool(this->pool);
-  if (this->square_args !=NULL)
+  if (this->square_args != NULL)
     free(this->square_args);
-  if (this->loop_args !=NULL)
+  if (this->loop_args != NULL)
     free(this->loop_args);
-  if (this->inner_loop_args !=NULL)
+  if (this->inner_loop_args != NULL)
     free(this->inner_loop_args);
-  if (this->outer_loop_args !=NULL)
+  if (this->outer_loop_args != NULL)
     free(this->outer_loop_args);
 }
 
@@ -111,17 +97,15 @@ void TasksTest::testSubmit()
 {
   this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
   this->square_args->val = 3;
-  this->square_args->result_needed = false;
 
   this->pool = createPool(1);
-  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, 0) == 0);
+  CPPUNIT_ASSERT(vftasks_submit(this->pool, square, this->square_args, 0) == 0);
 }
 
 void TasksTest::testSubmitInvalidNumWorkers()
 {
   this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
   this->square_args->val = 3;
-  this->square_args->result_needed = false;
   this->pool = createPool(1);
 
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, &this->square_args, -1) != 0);
@@ -130,34 +114,29 @@ void TasksTest::testSubmitInvalidNumWorkers()
 
 void TasksTest::testSubmitGet()
 {
-  int *result_ptr;
   this->square_args = (square_args_t *)malloc(sizeof(square_args_t));
   this->square_args->val = 3;
-  this->square_args->result_needed = true;
   this->pool = createPool(1);
 
   CPPUNIT_ASSERT(vftasks_submit(this->pool, square, this->square_args, 0) == 0);
-  CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result_ptr) == 0);
-  CPPUNIT_ASSERT(*result_ptr == 9);
-  free(result_ptr);
+  CPPUNIT_ASSERT(vftasks_get(this->pool) == 0);
+  CPPUNIT_ASSERT(this->square_args->result == 9);
 }
 
 void TasksTest::testGetNoWorkers()
 {
   this->pool = createPool(1);
-  CPPUNIT_ASSERT(vftasks_get(pool, NULL) != 0);
+  CPPUNIT_ASSERT(vftasks_get(pool) != 0);
 }
 
 // A simple loop task.
-static void *loop(void *raw_args)
+static void loop(void *raw_args)
 {
   int i;
   loop_args_t *args = (loop_args_t *)raw_args;
 
   for (i = args->start; i < ROWS; i += args->stride)
     array[i] = i;
-
-  return NULL;
 }
 
 void TasksTest::submitLoop()
@@ -185,32 +164,30 @@ void TasksTest::testSubmitLoop()
 void TasksTest::testSubmitGetLoop()
 {
   int k;
-  int *result;
 
   this->pool = createPool(N_PARTITIONS);
   this->submitLoop();
 
   for (k = 0; k < N_PARTITIONS; k++)
-    CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) == 0);
+    CPPUNIT_ASSERT(vftasks_get(this->pool) == 0);
 }
 
 void TasksTest::testTooManyGets()
 {
   int k;
-  int *result;
 
   this->pool = createPool(N_PARTITIONS);
   this->submitLoop();
 
   for (k = 0; k < N_PARTITIONS; k++)
-    CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) == 0);
+    CPPUNIT_ASSERT(vftasks_get(this->pool) == 0);
 
-  CPPUNIT_ASSERT(vftasks_get(this->pool, (void **)&result) != 0);
+  CPPUNIT_ASSERT(vftasks_get(this->pool) != 0);
 }
 
 // A task-like function that contains the inner loop part of the outer loop
 // described below.
-static void *inner_loop(void *raw_args)
+static void inner_loop(void *raw_args)
 {
   int i, j;
   inner_loop_args_t *args = (inner_loop_args_t *)raw_args;
@@ -218,13 +195,11 @@ static void *inner_loop(void *raw_args)
   i = args->outer_loop_idx;
   for (j = args->start; j < COLS; j += args->stride)
     matrix[i][j] = i*j;
-
-  return NULL;
 }
 
 // A task-like function that contains a nested loop.
 // The inner loop is called by submitting subsidiary tasks.
-static void *outer_loop(void *raw_args)
+static void outer_loop(void *raw_args)
 {
   int i, j, result = 0;
   inner_loop_args_t inner_args[N_PARTITIONS];
@@ -246,17 +221,10 @@ static void *outer_loop(void *raw_args)
     inner_loop(&inner_args[j]);
 
     for (j = 0; j < N_PARTITIONS-1; j++)
-      result |= vftasks_get(args->pool, NULL);
+      result |= vftasks_get(args->pool);
   }
 
-  if (args->result_needed)
-  {
-    int *result_ptr = (int *)malloc(sizeof(int));
-    *result_ptr = result;
-    return result_ptr;
-  }
-
-  return NULL;
+  args->result = result;
 }
 
 // Helper function to submit nested loop tasks with a variable
@@ -274,7 +242,6 @@ int TasksTest::submitNestedLoop(int numWorkers)
     this->outer_loop_args[i].start = i;
     this->outer_loop_args[i].stride = N_PARTITIONS;
     this->outer_loop_args[i].pool = this->pool;
-    this->outer_loop_args[i].result_needed = false;
     results[i] = vftasks_submit(this->pool, outer_loop,
                                 &this->outer_loop_args[i], numWorkers);
   }
@@ -307,7 +274,6 @@ int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
 {
   int i, result = 0;
   int results[N_PARTITIONS-1];
-  int *result_ptr;
   this->outer_loop_args = (outer_loop_args_t *)calloc(N_PARTITIONS,
                                                       sizeof(outer_loop_args_t));
 
@@ -316,34 +282,25 @@ int TasksTest::submitGetNestedLoop(int numWorkers, int expectedResult)
     this->outer_loop_args[i].start = i;
     this->outer_loop_args[i].stride = N_PARTITIONS;
     this->outer_loop_args[i].pool = this->pool;
-    this->outer_loop_args[i].result_needed = true;
-    result |= vftasks_submit(this->pool, outer_loop, &this->outer_loop_args[i], numWorkers);
+    result |= vftasks_submit(this->pool,
+                             outer_loop,
+                             &this->outer_loop_args[i],
+                             numWorkers);
   }
 
   if (result == 0)
   {
     for (i = 0; i < N_PARTITIONS-1; i++)
     {
-      result_ptr = NULL;
-      results[i] = vftasks_get(this->pool, (void **)&result_ptr);
-      if (result_ptr != NULL)
-      {
-        result |= *result_ptr;
-        free(result_ptr);
-      }
+      results[i] = vftasks_get(this->pool);
+      result |= outer_loop_args[i].result;
     }
 
     this->outer_loop_args[i].start = i;
     this->outer_loop_args[i].stride = N_PARTITIONS;
     this->outer_loop_args[i].pool = this->pool;
-    this->outer_loop_args[i].result_needed = true;
-    result_ptr = NULL;
-    result_ptr = (int *)outer_loop(&this->outer_loop_args[i]);
-    if (result_ptr != NULL)
-    {
-      result |= *result_ptr;
-      free(result_ptr);
-    }
+    outer_loop(&this->outer_loop_args[i]);
+    result |= outer_loop_args[i].result;
 
     CPPUNIT_ASSERT(result == expectedResult);
 
