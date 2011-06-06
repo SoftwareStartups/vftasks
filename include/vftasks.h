@@ -172,14 +172,12 @@
  * tasks in the form of function pointers can be distributed among the workers.
  * Note, that the function prototypes should be prepared in a special way.
  * Change the function interface to the following signature:
- * \code void *(vftasks_task_t)(void *) \endcode
+ * \code void (vftasks_task_t)(void *) \endcode
  * Arguments of the original function should be packed in a struct.
- * The result is returned through a void pointer so can be of any type.
  * The submitting is done as follows:
  * \code vftasks_submit(worker_pool, task_fun_ptr, args_struct, num_workers); \endcode
- * The result of the task can be obtained by the following (blocking) call:
- * \code vftasks_get(worker_pool, &result_ptr);\endcode
- * This call blocks until all workers in the given pool have finished.
+ * The task can be joined by the following (blocking) call:
+ * \code vftasks_get(worker_pool);\endcode
  *
  * \page page_2d_sync 2-dimensional task synchronization
  * When distributing the iterations of a loop over multiple concurrent tasks, it is
@@ -257,7 +255,7 @@ typedef struct vftasks_pool_s vftasks_pool_t;
 
 /** Represents a task that is to be executed in the worker-thread pool.
  */
-typedef void *(vftasks_task_t)(void *);
+typedef void (vftasks_task_t)(void *);
 
 /* ***************************************************************************
  * Creation and destruction of worker-thread pools
@@ -313,14 +311,9 @@ int vftasks_submit(vftasks_pool_t *pool,
                    void *args,
                    int num_workers);
 
-/** Retrieves the result of a task that is being executed in a given worker-thread pool.
- *
- *  Blocks until execution of the task has completed and then stores the result in the
- *  location that is referenced by result.
+/** Blocks until the most recent submitted task is finished.
  *
  *  @param  pool    A pointer to the pool.
- *  @param  result  A reference to the location into which the result is to be stored.
- *                  If result is NULL, the result is not stored.
  *
  *  @return
  *    On success, 0.
@@ -330,7 +323,7 @@ int vftasks_submit(vftasks_pool_t *pool,
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
  */
-int vftasks_get(vftasks_pool_t *pool, void **result);
+int vftasks_get(vftasks_pool_t *pool);
 
 
 /* ***************************************************************************

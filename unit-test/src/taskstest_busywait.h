@@ -40,7 +40,7 @@ class TasksTestBusyWait : public TasksTest
   CPPUNIT_TEST_SUITE_END();  // TasksTestBusyWait
 
 public:
-  TasksTestBusyWait();
+  void setUp();
 };
 
 #endif  // TASKSTEST_BUSY_WAIT_H
