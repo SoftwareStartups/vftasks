@@ -21,7 +21,7 @@ void vftasks_timer_start(uint64_t *start)
 {
   struct timespec tp;
   clock_gettime(CLOCK_REALTIME, &tp);
-  *start = tp.tv_sec * 1000000000L + tp.tv_nsec;
+  *start = tp.tv_sec * ((uint64_t) 1000000000) + tp.tv_nsec;
 }
 
 uint64_t vftasks_timer_stop(uint64_t *start)
@@ -30,7 +30,7 @@ uint64_t vftasks_timer_stop(uint64_t *start)
   uint64_t stop;
 
   clock_gettime(CLOCK_REALTIME, &tp);
-  stop = tp.tv_sec * 1000000000L + tp.tv_nsec;
+  stop = tp.tv_sec * ((uint64_t) 1000000000)+ tp.tv_nsec;
 
   return stop - *start;
 }
