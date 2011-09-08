@@ -1355,6 +1355,19 @@ double vftasks_read_double(vftasks_rport_t *rport);
  */
 void *vftasks_read_ptr(vftasks_rport_t *rport);
 
+/** Stores a reference timestamp with nanosecond resolution for performance measurement.
+ *
+ * @param  start  pointer to the location in which to store the timestamp value.
+ */
+void vftasks_timer_start(uint64_t *start);
+
+/** Returns the time in nanoseconds that has elapsed since calling vftasks_timer_start
+ *  on start.
+ *
+ * @param  start  pointer to the location in which vftasks_timer_start has stored
+ *                the starting timestamp.
+ */
+uint64_t vftasks_timer_stop(uint64_t *start);
 
 #endif /* __VFTASKS_H */
 
