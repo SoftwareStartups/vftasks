@@ -28,6 +28,7 @@ typedef struct
 {
   int start;
   int length;
+  int result;
 } task_t;
 
 
@@ -37,28 +38,24 @@ typedef struct
  * for (i = 0; i < M; i++)
  *   a[i] = i * i;
  */
-void *task(void *raw_args)
+void task(void *raw_args)
 {
   int i;
   task_t *args = (task_t *)raw_args;
-  int *result = malloc(sizeof(int)); /* still needed when out of scope */
 
   for (i = args->start; i < args->start + args->length; i++)
     a[i] = i * i;
 
-  *result = i - args->start;
-
-  return result;
+  args->result = i - args->start;
 }
 
 int threading()
 {
   int k, acc = 0;
-  int *results[N_PARTITIONS];
 
   /* be sure to put the arguments on the heap as soon as the function submitting the
      tasks returns before vftasks_get is called on the workers */
-  task_t args[N_PARTITIONS];
+  task_t *args = calloc(N_PARTITIONS, sizeof(task_t));
 
   /* start the workers */
   for (k = 0; k < N_PARTITIONS-1; k++)
@@ -68,9 +65,16 @@ int threading()
     vftasks_submit(pool, task, &args[k], 0);
   }
 
+  task(&args[k]);
+
   /* wait for the workers to finish */
   for (k = 0; k < N_PARTITIONS-1; k++)
-    vftasks_get(pool, (void **)&results[k]);
+    vftasks_get(pool);
+
+  for (k = 0; k < N_PARTITIONS; k++)
+    acc += args[k].result;
+
+  free(args);
 
   return acc;
 }
