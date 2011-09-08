@@ -20,7 +20,7 @@ extern "C"
 typedef struct
 {
   int val;
-  bool result_needed;
+  int result;
 } square_args_t;
 
 typedef struct
@@ -34,7 +34,7 @@ typedef struct
   int start;
   int stride;
   vftasks_pool_t *pool;
-  bool result_needed;
+  int result;
 } outer_loop_args_t;
 
 typedef struct
@@ -91,8 +91,7 @@ public:
   void testSubmitGetNestedLoop();
   void testSubmitGetNestedLoopInvalidSubWorkers();
 
-  TasksTest();
-
+  void setUp();
   void tearDown();
 
 protected:
