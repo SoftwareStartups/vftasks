@@ -10,6 +10,8 @@
 /* Example: usage of worker thread pools.
  * Computations on an array are partitioned into 4 tasks which are distributed
  * among a pool of worker threads.
+ * The partitioning will not result in any speedup because the amount of work in
+ * the tasks is too small. This is intentional since the aim is to showcase the API.
  */
 
 #include <vftasks.h>
@@ -53,8 +55,7 @@ int threading()
 {
   int k, acc = 0;
 
-  /* be sure to put the arguments on the heap as soon as the function submitting the
-     tasks returns before vftasks_get is called on the workers */
+  /* put the arguments on the heap so the worker threads can access them */
   task_t *args = calloc(N_PARTITIONS, sizeof(task_t));
 
   /* start the workers */
