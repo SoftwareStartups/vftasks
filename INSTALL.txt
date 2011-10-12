@@ -78,8 +78,9 @@ The build has been verified on:
   * Build and install the library and headers:
     $ cmake -DCMAKE_BUILD_TYPE=release ..
     $ make install DESTDIR=<PATH_TO_INSTALL_DIR>
-    The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib
-    The include files are located in <PATH_TO_INSTALL_DIR>/include
+    The vfTasks library is created in <PATH_TO_INSTALL_DIR>/usr/local/lib
+    The include files are located in <PATH_TO_INSTALL_DIR>/usr/local/include
+    When omitting DESTDIR, vftasks will be installed in /usr/local
 
   * Build and run the unit tests:
     $ cmake -DCMAKE_BUILD_TYPE=debug ..
