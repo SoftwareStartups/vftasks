@@ -1,6 +1,13 @@
 vfTasks changelog
 ==================
 
+Version 1.1.3 alpha, October 14, 2011
+---------------------------------
+
+- Removed internal Makefile
+- Some cleanup in build scripts
+- Added timer API
+
 Version 1.1.2 alpha, May 26, 2011
 ---------------------------------
 
