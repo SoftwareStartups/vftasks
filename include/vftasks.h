@@ -22,10 +22,10 @@
  * - cross-thread communication channels
  *
  * \section sec_error_handling Error handling
- * By default, members of the vfTasks API terminate the calling program when a failure
- * is encountered.
- * This behaviour can be overriden by compiling vfSync with the
- * VFTASKS_ABORT_ON_FAILURE preprocessor symbols undefined.
+ * By default, members of the vfTasks API terminate the calling
+ * program when a failure is encountered.  This behaviour can be
+ * overriden by compiling the library with the
+ * VFTASKS_ABORT_ON_FAILURE preprocessor symbol undefined.
  *
  * \page FIFO Channels and cross-thread communication
  * A FIFO queue can be regarded as uni-directional communication
