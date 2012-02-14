@@ -1,8 +1,8 @@
 BUILDDIR = build
 LIB = $(BUILDDIR)/src/libvftasks.a
 INC = include/vftasks.h
-INSTALL_INCDIR = $(VFTASKSINSTALL)/include
-INSTALL_LIBDIR = $(VFTASKSINSTALL)/lib
+INSTALL_INCDIR = $(VFTASKSINSTALL)/tools/include
+INSTALL_LIBDIR = $(VFTASKSINSTALL)/tools/lib
 
 .PHONY: default all clean clean_all install release check_env
 
