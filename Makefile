@@ -18,7 +18,7 @@ test: | $(BUILDDIR)
 	-cd $(BUILDDIR) && make unit_test run_test
 
 release: install
-	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz include lib
+	cd $(VFTASKSINSTALL)/tools && tar -czf vftasks.tgz include lib
 
 $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
 	mkdir -p $@
