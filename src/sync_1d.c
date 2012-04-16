@@ -28,9 +28,9 @@ struct vftasks_1d_sync_mgr_s
 
 /** abort
  */
-void abort_on_fail(char *msg)
+void _vftasks_abort_on_fail_sync_1d(char *msg)
 {
-#ifdef VFTASKS_ABORT_ON_FAILURE
+#ifdef VFTASKS__VFTASKS_ABORT_ON_FAIL_SYNC_1DURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -47,7 +47,7 @@ vftasks_1d_sync_mgr_t *vftasks_create_1d_sync_mgr(int num_threads, int dist)
   mgr = (vftasks_1d_sync_mgr_t *)malloc(sizeof(vftasks_1d_sync_mgr_t));
   if (mgr == NULL)
   {
-    abort_on_fail("vftasks_create_1d_mgr: not enough memory");
+    _vftasks_abort_on_fail_sync_1d("vftasks_create_1d_mgr: not enough memory");
     return NULL;
   }
 
@@ -60,7 +60,7 @@ vftasks_1d_sync_mgr_t *vftasks_create_1d_sync_mgr(int num_threads, int dist)
   if (mgr->sems == NULL)
   {
     free(mgr);
-    abort_on_fail("vftasks_create_1d_mgr: not enough memory");
+    _vftasks_abort_on_fail_sync_1d("vftasks_create_1d_mgr: not enough memory");
     return NULL;
   }
 
@@ -108,7 +108,7 @@ int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i)
   /* signal through the thread's semaphore; on failure, return 1 */
   if (SEMAPHORE_POST(mgr->sems[t]) != 0)
   {
-    abort_on_fail("vftasks_signal_1d");
+    _vftasks_abort_on_fail_sync_1d("vftasks_signal_1d");
     return 1;
   }
 
@@ -128,7 +128,7 @@ int vftasks_wait_1d(vftasks_1d_sync_mgr_t *mgr, int i)
   /* wait through the other thread's semaphore; on failure, return 1 */
   if (SEMAPHORE_WAIT(mgr->sems[t]) != 0)
   {
-    abort_on_fail("vftasks_wait_1d");
+    _vftasks_abort_on_fail_sync_1d("vftasks_wait_1d");
     return 1;
   }
 

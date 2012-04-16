@@ -30,9 +30,9 @@ struct vftasks_2d_sync_mgr_s
 
 /** abort
  */
-void abort_on_fail(char *msg)
+void _vftasks_abort_on_fail_sync_2d(char *msg)
 {
-#ifdef VFTASKS_ABORT_ON_FAILURE
+#ifdef VFTASKS__VFTASKS_ABORT_ON_FAIL_SYNC_2DURE
   fprintf(stderr, "Failure: %s\n", msg);
   abort();
 #endif
@@ -50,7 +50,8 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
 
   if (abs(dist_x) >= dim_x || abs(dist_y) >= dim_y)
   {
-    abort_on_fail("vftasks_create_2d_mgr: distance larger than dimension");
+    _vftasks_abort_on_fail_sync_2d(
+      "vftasks_create_2d_mgr: distance larger than dimension");
     return NULL;
   }
 
@@ -58,7 +59,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   mgr = (vftasks_2d_sync_mgr_t *)malloc(sizeof(vftasks_2d_sync_mgr_t));
   if (mgr == NULL)
   {
-    abort_on_fail("vftasks_create_2d_mgr: not enough memory");
+    _vftasks_abort_on_fail_sync_2d("vftasks_create_2d_mgr: not enough memory");
     return NULL;
   }
 
@@ -73,7 +74,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   if (mgr->sems == NULL)
   {
     free(mgr);
-    abort_on_fail("vftasks_create_2d_mgr: not enough memory");
+    _vftasks_abort_on_fail_sync_2d("vftasks_create_2d_mgr: not enough memory");
     return NULL;
   }
 
@@ -117,7 +118,7 @@ int vftasks_signal_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
     /* signal through the current outer iteration's semaphore; on failure, return 1 */
     if (SEMAPHORE_POST(mgr->sems[x]) != 0)
     {
-      abort_on_fail("vftasks_signal_2d");
+      _vftasks_abort_on_fail_sync_2d("vftasks_signal_2d");
       return 1;
     }
   }
@@ -137,7 +138,7 @@ int vftasks_wait_2d(vftasks_2d_sync_mgr_t *mgr, int x, int y)
     /* wait through the other iteration's semaphore; on failure, return 1 */
     if (SEMAPHORE_WAIT(mgr->sems[x - mgr->dist_x]) != 0)
     {
-      abort_on_fail("vftasks_wait_2d");
+      _vftasks_abort_on_fail_sync_2d("vftasks_wait_2d");
       return 1;
     }
   }
