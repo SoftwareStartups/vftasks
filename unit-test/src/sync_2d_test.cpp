@@ -1,4 +1,4 @@
-// Copyright (c) 2011 Vector Fabrics B.V. All rights reserved.
+// Copyright (c) 2011-2012 Vector Fabrics B.V. All rights reserved.
 //
 // This file contains proprietary and confidential information of Vector
 // Fabrics and all use (including distribution) is subject to the conditions of
@@ -6,7 +6,7 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#include "synctest.h"
+#include "sync_2d_test.h"
 
 extern "C"
 {
@@ -61,18 +61,18 @@ static int get()
   return set;
 }
 
-SyncTest::SyncTest()
+Sync2dTest::Sync2dTest()
 {
   this->sync_mgr = NULL;
 }
 
-void SyncTest::setUp()
+void Sync2dTest::setUp()
 {
   SEMAPHORE_CREATE(sem, 0, 1);
   set = 0;
 }
 
-void SyncTest::tearDown()
+void Sync2dTest::tearDown()
 {
   if (this->sync_mgr != NULL)
     vftasks_destroy_2d_sync_mgr(this->sync_mgr);
@@ -80,13 +80,13 @@ void SyncTest::tearDown()
   SEMAPHORE_DESTROY(sem);
 }
 
-void SyncTest::testCreateManager()
+void Sync2dTest::testCreateManager()
 {
   this->sync_mgr = vftasks_create_2d_sync_mgr(ROWS, COLS, -1, 1);
   CPPUNIT_ASSERT(this->sync_mgr != NULL);
 }
 
-void SyncTest::testCreateManagerBoundaries()
+void Sync2dTest::testCreateManagerBoundaries()
 {
   vftasks_2d_sync_mgr_t *sync_mgr;
 
@@ -143,7 +143,7 @@ void SyncTest::testCreateManagerBoundaries()
  *   +-------------------------------+
  *
  */
-void SyncTest::testSync(int rowDist, int colDist, int row, int col)
+void Sync2dTest::testSync(int rowDist, int colDist, int row, int col)
 {
   int i, j;
   args_t args;
@@ -180,7 +180,7 @@ void SyncTest::testSync(int rowDist, int colDist, int row, int col)
  * positive synchronization tests that do not cross iteration-space boundaries
  ******************************************************************************/
 
-void SyncTest::testVertical()
+void Sync2dTest::testVertical()
 {
   /* left column boundary distance 1 */
   this->testSync(1, 0, 1, 0);
@@ -255,7 +255,7 @@ void SyncTest::testVertical()
   this->testSync(-2, 0, ROWS-4, COLS-1);
 }
 
-void SyncTest::testHorizontal()
+void Sync2dTest::testHorizontal()
 {
   /* first row boundary distance 1 */
   this->testSync(0, -1, 0, 0);
@@ -327,7 +327,7 @@ void SyncTest::testHorizontal()
   this->testSync(0, 2, ROWS-1, COLS-1);
 }
 
-void SyncTest::testDiagonal()
+void Sync2dTest::testDiagonal()
 {
   /* distance 1 tests */
   this->testSync(1, 1, ROWS/2, COLS/2);
@@ -377,7 +377,7 @@ void SyncTest::testDiagonal()
 /* For certain cases, no synchronization is needed, for instance for i,j = 0,0
  * and other combinations of distances and coordinates that fall outside the grid.
  */
-void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
+void Sync2dTest::testNoSync(int rowDist, int colDist, int row, int col)
 {
   args_t args;
   thread_t thread;
@@ -395,7 +395,7 @@ void SyncTest::testNoSync(int rowDist, int colDist, int row, int col)
   THREAD_JOIN(thread);
 }
 
-void SyncTest::testBorderCrossing()
+void Sync2dTest::testBorderCrossing()
 {
   /* corner tests */
   this->testNoSync(1, 1, 0, 0);
@@ -425,4 +425,4 @@ void SyncTest::testBorderCrossing()
 }
 
 // register fixture
-CPPUNIT_TEST_SUITE_REGISTRATION(SyncTest);
+CPPUNIT_TEST_SUITE_REGISTRATION(Sync2dTest);

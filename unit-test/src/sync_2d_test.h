@@ -1,4 +1,4 @@
-// Copyright (c) 2011 Vector Fabrics B.V. All rights reserved.
+// Copyright (c) 2011-2012 Vector Fabrics B.V. All rights reserved.
 //
 // This file contains proprietary and confidential information of Vector
 // Fabrics and all use (including distribution) is subject to the conditions of
@@ -6,8 +6,8 @@
 // agreement in place, no usage or distribution rights are granted by Vector
 // Fabrics.
 //
-#ifndef SYNCTEST_H
-#define SYNCTEST_H
+#ifndef SYNC_2D_TEST_H
+#define SYNC_2D_TEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -16,9 +16,9 @@ extern "C"
 #include <vftasks.h>
 }
 
-class SyncTest : public CppUnit::TestFixture
+class Sync2dTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE(SyncTest);
+  CPPUNIT_TEST_SUITE(Sync2dTest);
 
   CPPUNIT_TEST(testCreateManager);
   CPPUNIT_TEST(testCreateManagerBoundaries);
@@ -28,7 +28,7 @@ class SyncTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testDiagonal);
   CPPUNIT_TEST(testBorderCrossing);
 
-  CPPUNIT_TEST_SUITE_END(); // SyncTest
+  CPPUNIT_TEST_SUITE_END(); // Sync2dTest
 
 public:
   void testCreateManager();
@@ -39,7 +39,7 @@ public:
   void testDiagonal();
   void testBorderCrossing();
 
-  SyncTest();
+  Sync2dTest();
 
   void setUp();
   void tearDown();
@@ -51,4 +51,4 @@ private:
   vftasks_2d_sync_mgr_t *sync_mgr;
 };
 
-#endif // SYNCTEST_H
+#endif // SYNC_2D_TEST_H
