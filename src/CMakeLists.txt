@@ -7,6 +7,6 @@
 # Fabrics.
 
 include_directories(../include)
-add_library(vftasks tasks.c sync.c streams.c semaphore.c timer.c)
+add_library(vftasks tasks.c sync_1d.c sync_2d.c streams.c semaphore.c timer.c)
 
 install(TARGETS vftasks DESTINATION lib)

@@ -179,22 +179,63 @@
  * The task can be joined by the following (blocking) call:
  * \code vftasks_get(worker_pool);\endcode
  *
- * \page page_2d_sync 2-dimensional task synchronization
+ * \page page_sync Task synchronization
  * When distributing the iterations of a loop over multiple concurrent tasks, it is
  * important that any communication from one task to another task is properly
  * synchronized. This means that before a task reads data that is produced by another
  * task, it checks that the other task has actually finished computing that data. If
  * not, then the receiving task suspends itself until the data becomes available.
  *
+ * \section sec_1d_sync_mgr 1D-synchronization manager
+ * For managing synchronization between tasks, the vfTasks API provides functionality
+ * that allows programmers to enforce an ordering between producers and consumers of
+ * data.
+ * Having this functionality available requires the creation of a so-called
+ * 1D-synchronization manager for the data exchange.
+ *
  * \section sec_2d_sync_mgr 2D-synchronization manager
- * The vfTasks API provides functionality for managing such synchronization when the
- * partitioned loop contains a nested loop and data is exchanged between different
- * iterations of the inner loop that are themselves distributed over different iterations
- * of the outer loop.
+ * The vfTasks API also provides specific functionality for managing synchronization
+ * between tasks when the partitioned loop contains a nested loop and data is exchanged
+ * between different iterations of the inner loop that are themselves distributed over
+ * different iterations of the outer loop.
  * Having this functionality available requires the creation of a so-called
  * 2D-synchronization manager for the partitioned loop.
  *
- * \section sec_2d_sync_example Example
+ * \section sec_1d_sync_example Example: 1D-synchronization
+ * Consider the following program fragment:
+ * \code
+ * for (i = 0; i < 1024; i++)
+ * {
+ *   if (i >= 32)
+ *   {
+ *     a[i] += a[i - 32];
+ *   }
+ * }
+ * \endcode
+ *
+ * Here, the loop consumes values that are produced by the same loop, 32 iterations
+ * before.
+ * To set up proper synchronization for the loop in preparation for a round-robin
+ * partitioning over four threads, we adapt the code as follows:
+ * \code
+ * #include <vftasks.h>
+ *
+ * ...
+ *
+ * vftasks_1d_sync_mgr_t *sync_mgr = vftasks_create_1d_sync_mgr(4, 32);
+ * for (i = 0; i < 1024; i++)
+ * {
+ *   if (i >= 32)
+ *   {
+ *     vftasks_wait_1d(sync_mgr, i);
+ *     a[i] += a[i - 32];
+ *     vftasks_signal_2d(sync_mgr, i);
+ *   }
+ * }
+ * vftasks_destroy_1d_sync_mgr(sync_mgr);
+ * \endcode
+ *
+ * \section sec_2d_sync_example Example: 2D-synchronization
  * Consider the following program fragment:
  * \code
  * for (i = 0; i < 1024; i++)
@@ -327,6 +368,73 @@ int vftasks_get(vftasks_pool_t *pool);
 
 
 /* ***************************************************************************
+ * One-dimensional synchronization between tasks
+ * ***************************************************************************/
+
+/** A handle that is to be used to manage one-dimensional synchronization between
+ *  concurrent tasks.
+ */
+typedef struct vftasks_1d_sync_mgr_s vftasks_1d_sync_mgr_t;
+
+/** Creates a handle for managing one-dimensional synchronization between concurrent
+ *  tasks.
+ *
+ *  @param num_threads  The number of threads over which the iteration space of the
+ *                      concurrent tasks is partitioned in a round-robin fashion.
+ *  @param dist         The critical dependency deistance along the iteration space of
+ *                      the concurrent tasks.
+ *
+ *  @return
+ *    On success, a pointer to the handle.
+ *    On failure, NULL.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
+ */
+vftasks_1d_sync_mgr_t *vftasks_create_1d_sync_mgr(int num_threads, int dist);
+
+/** Destroys a given handle for managing one-dimension synchronization between
+ *  concurrent tasks.
+ *
+ *  @param mgr  A pointer to the handle.
+ */
+void vftasks_destroy_1d_sync_mgr(vftasks_1d_sync_mgr_t *mgr);
+
+/** Signals the completion of the production of data through a handle for managing
+ *  one-dimensional synchronization between concurrent tasks.
+ *
+ *  @param mgr  A pointer to the handle.
+ *  @param i    The index into the iteration space of the concurrent tasks.
+ *
+ *  @return
+ *    On success, 0.
+ *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
+ */
+int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i);
+
+/** Synchronizes a task before the consumption of data with the tasks that produce the
+ *  data.
+ *
+ *  @param mgr  A pointer to the handle that manages synchronization.
+ *  @param i    The index into the iteration space of the concurrent tasks.
+ *
+ *  @return
+ *    On success, 0.
+ *    On failure, a nonzero value.
+ *
+ *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
+ *  defined (which is the default), the function does not return on failure and instead
+ *  terminates the calling program.
+ */
+int vftasks_wait_1d(vftasks_1d_sync_mgr_t *mgr, int i);
+
+
+/* ***************************************************************************
  * Two-dimensional synchronization between tasks
  * ***************************************************************************/
 
@@ -368,7 +476,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
 void vftasks_destroy_2d_sync_mgr(vftasks_2d_sync_mgr_t *mgr);
 
 /** Signals the completion of an inner iteration through a handle for managing
- *  two-dimensional synchronization between concurrent task.
+ *  two-dimensional synchronization between concurrent tasks.
  *
  *  @param mgr  A pointer to the handle.
  *  @param x    The iteration's first-dimension index into the joint iteration space of
