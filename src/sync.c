@@ -80,7 +80,7 @@ vftasks_2d_sync_mgr_t *vftasks_create_2d_sync_mgr(int dim_x,
   /* initialize the semaphores */
   for (x = 0; x < dim_x; ++x)
   {
-    SEMAPHORE_CREATE(mgr->sems[x], dim_y);
+    SEMAPHORE_CREATE(mgr->sems[x], 0, dim_y);
   }
 
   /* return the pointer to the manager */

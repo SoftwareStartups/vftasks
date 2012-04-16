@@ -1,4 +1,4 @@
-/* Copyright (c) 2011 Vector Fabrics B.V. All rights reserved.
+/* Copyright (c) 2011-2012 Vector Fabrics B.V. All rights reserved.
  *
  * This file contains proprietary and confidential information of Vector
  * Fabrics and all use (including distribution) is subject to the conditions of
@@ -11,13 +11,13 @@
 #define THREADING_SYNC_DEFS_POSIX_H
 
 #include <pthread.h>
-#include <semaphore.h>
+#include "semaphore.h"
 
 
 typedef pthread_t thread_t;
 typedef pthread_key_t tls_key_t;
 typedef pthread_mutex_t mutex_t;
-typedef sem_t semaphore_t;
+typedef _vftasks_semaphore_t semaphore_t;
 
 
 #define THREAD_CREATE(THREAD,FUNC,ARGS) \
@@ -47,10 +47,11 @@ typedef sem_t semaphore_t;
   }
 
 
-#define SEMAPHORE_CREATE(SEM,MAX) sem_init((semaphore_t *)&(SEM), 0, 0)
-#define SEMAPHORE_DESTROY(SEM) sem_destroy((semaphore_t *)&(SEM))
-#define SEMAPHORE_WAIT(SEM) sem_wait((semaphore_t *)&(SEM))
-#define SEMAPHORE_POST(SEM) sem_post((semaphore_t *)&(SEM))
+#define SEMAPHORE_CREATE(SEM,VALUE,MAX) \
+  _vftasks_sem_create((_vftasks_semaphore_t *)(&(SEM)), VALUE)
+#define SEMAPHORE_DESTROY(SEM) _vftasks_sem_destroy((_vftasks_semaphore_t *)(&(SEM)))
+#define SEMAPHORE_WAIT(SEM) _vftasks_sem_wait((_vftasks_semaphore_t *)(&(SEM)))
+#define SEMAPHORE_POST(SEM) _vftasks_sem_post((_vftasks_semaphore_t *)(&(SEM)))
 
 
 #endif /* THREADING_SYNC_DEFS_POSIX_H */

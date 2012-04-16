@@ -68,7 +68,7 @@ SyncTest::SyncTest()
 
 void SyncTest::setUp()
 {
-  SEMAPHORE_CREATE(sem, 1);
+  SEMAPHORE_CREATE(sem, 0, 1);
   set = 0;
 }
 

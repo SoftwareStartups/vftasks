@@ -55,8 +55,8 @@ typedef HANDLE semaphore_t;
   }
 
 
-#define SEMAPHORE_CREATE(SEM,MAX) \
-  (!(((SEM) = CreateSemaphore(NULL, 0, MAX, NULL)) != NULL))
+#define SEMAPHORE_CREATE(SEM,VALUE,MAX)                                 \
+  (!(((SEM) = CreateSemaphore(NULL, VALUE, MAX, NULL)) != NULL))
 
 #define SEMAPHORE_DESTROY(SEM) CloseHandle(SEM)
 #define SEMAPHORE_WAIT(SEM) (!(WaitForSingleObject(SEM, INFINITE) == WAIT_OBJECT_0))

@@ -162,12 +162,12 @@ static inline int vftasks_initialize_sync(vftasks_worker_t *worker)
 {
   if (!worker->busy_wait)
   {
-    if (SEMAPHORE_CREATE(worker->submit_sem, 1) != 0)
+    if ((SEMAPHORE_CREATE(worker->submit_sem, 0, 1)) != 0)
     {
       abort_on_fail("vftasks_create_pool: submit semaphore creation failed");
       return 1;
     }
-    if (SEMAPHORE_CREATE(worker->get_sem, 1) != 0)
+    if ((SEMAPHORE_CREATE(worker->get_sem, 0, 1)) != 0)
     {
       SEMAPHORE_DESTROY(worker->submit_sem);
       abort_on_fail("vftasks_create_pool: get semaphore creation failed");
