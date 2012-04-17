@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2011 Vector Fabrics B.V. All rights reserved.
+# Copyright (c) 2010-2012 Vector Fabrics B.V. All rights reserved.
 
 # This file contains proprietary and confidential information of Vector
 # Fabrics and all use (including distribution) is subject to the conditions of
@@ -7,6 +7,6 @@
 # Fabrics.
 
 include_directories(../include)
-add_library(vftasks tasks.c sync.c streams.c timer.c)
+add_library(vftasks tasks.c sync_1d.c sync_2d.c streams.c semaphore.c timer.c)
 
 install(TARGETS vftasks DESTINATION lib)
