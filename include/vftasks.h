@@ -225,12 +225,12 @@
  * vftasks_1d_sync_mgr_t *sync_mgr = vftasks_create_1d_sync_mgr(4, 32);
  * for (i = 0; i < 1024; i++)
  * {
+ *   vftasks_wait_1d(sync_mgr, i);
  *   if (i >= 32)
  *   {
- *     vftasks_wait_1d(sync_mgr, i);
  *     a[i] += a[i - 32];
- *     vftasks_signal_2d(sync_mgr, i);
  *   }
+ *   vftasks_signal_1d(sync_mgr, i);
  * }
  * vftasks_destroy_1d_sync_mgr(sync_mgr);
  * \endcode
