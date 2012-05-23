@@ -7,9 +7,9 @@ vfTasks
   - 2-D synchronization for parallelized loops
 
   For more information, visit http://www.vectorfabrics.com/technology/vftasks.
-  vfTasks is developed by Vector Fabrics (http://vectorfabrics.com) and 
-  complements Vector Fabrics' vfThreaded-x86 and vfEmbedded products
-  that help you parallelize a C application. 
+  vfTasks is developed by Vector Fabrics (http://vectorfabrics.com) and
+  complements Vector Fabrics' Pareon product
+  that help you parallelize a C application.
 
 
 Installing
