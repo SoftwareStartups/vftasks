@@ -28,7 +28,7 @@ test: | $(BUILDDIR)
 release: install
 	cd $(BUILDDIR) && $(MAKE) package
 	cp $(BUILDDIR)/vftasks$(MAJOR)$(MINOR)-$(MAJOR).$(MINOR).$(BUILD).deb $(VFTASKSINSTALL)
-	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz *
+	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include
 
 $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
 	mkdir -p $@
