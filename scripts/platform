@@ -1,0 +1,6 @@
+#!/bin/bash
+
+MACH=`uname -m`
+OS=`uname -s`
+
+echo ${MACH,,}-${OS,,}

@@ -6,7 +6,29 @@
 # agreement in place, no usage or distribution rights are granted by Vector
 # Fabrics.
 
+PROJECT(Pareon)
+
 include_directories(../include)
 add_library(vftasks tasks.c sync_1d.c sync_2d.c streams.c semaphore.c timer.c)
 
 install(TARGETS vftasks DESTINATION lib)
+
+SET(CPACK_PACKAGE_NAME "${PACKAGENAME}${MAJOR}${MINOR}")
+SET(CPACK_PACKAGE_VENDOR "Vector Fabrics B.V.")
+SET(CPACK_PACKAGE_FILE_NAME "${PACKAGENAME}${MAJOR}${MINOR}-${MAJOR}.${MINOR}.${BUILD}")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Vector Fabrics Pareon parallelization library")
+SET(CPACK_PACKAGE_CONTACT "info@vectorfabrics.com")
+
+SET(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR}")
+SET(CPACK_PACKAGE_VERSION_MINOR "${MINOR}")
+SET(CPACK_PACKAGE_VERSION_PATCH "${BUILD}") # use hudson build id
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Vector Fabrics B.V. <info@vectorfabrics.com>")
+
+SET(CPACK_PACKAGING_INSTALL_PREFIX
+  "/opt/vectorfabrics/${PACKAGENAME}-${MAJOR}.${MINOR}")
+SET(CPACK_INSTALLED_DIRECTORIES "${INSTALLDIR};${CPACK_PACKAGING_INSTALL_PREFIX}")
+SET(CPACK_INSTALL_CMAKE_PROJECTS "")
+
+INCLUDE(CPack)
