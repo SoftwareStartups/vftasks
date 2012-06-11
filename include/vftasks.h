@@ -414,6 +414,9 @@ void vftasks_destroy_1d_sync_mgr(vftasks_1d_sync_mgr_t *mgr);
  *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
+ *
+ *  NOTE: Sometimes, computing the correct iteration index requires some effort. Iteration
+ *  indices are zero-based; so the index of the ith iteration should be i - 1.
  */
 int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i);
 
@@ -430,6 +433,9 @@ int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i);
  *  NOTE: If vfTasks was compiled with the VFTASKS_ABORT_ON_FAILURE preprocessor symbol
  *  defined (which is the default), the function does not return on failure and instead
  *  terminates the calling program.
+ *
+ *  NOTE: Sometimes, computing the correct iteration index requires some effort. Iteration
+ *  indices are zero-based; so the index of the ith iteration should be i - 1.
  */
 int vftasks_wait_1d(vftasks_1d_sync_mgr_t *mgr, int i);
 
