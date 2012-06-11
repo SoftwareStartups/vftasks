@@ -235,6 +235,32 @@
  * vftasks_destroy_1d_sync_mgr(sync_mgr);
  * \endcode
  *
+ * \section sec_1d_sync_example_nz Example: 1D-synchronization (nonzero-based indexing)
+ *
+ * Now assume that the loop from the previous example was written as
+ * \code
+ * for (i = 32; i < 1024; i++)
+ * {
+ *   a[i] += a[i - 32];
+ * }
+ * \endcode
+ *
+ * Then, to set up synchronization for partitioning over four threads, one writes:
+ * \code
+ * #include <vftasks.h>
+ *
+ * ...
+ *
+ * vftasks_1d_sync_mgr_t *sync_mgr = vftasks_create_1d_sync_mgr(4, 32);
+ * for (i = 0; i < 1024; i++)
+ * {
+ *   vftasks_wait_1d(sync_mgr, i - 32);
+ *   a[i] += a[i - 32];
+ *   vftasks_signal_1d(sync_mgr, i - 32);
+ * }
+ * vftasks_destroy_1d_sync_mgr(sync_mgr);
+ * \endcode
+ *
  * \section sec_2d_sync_example Example: 2D-synchronization
  * Consider the following program fragment:
  * \code
