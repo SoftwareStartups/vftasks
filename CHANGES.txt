@@ -1,6 +1,11 @@
 vfTasks changelog
 ==================
 
+Version 1.1.4 alpha, June 2012
+-------------------------------
+
+- Added support for 1-D synchronization
+
 Version 1.1.3 alpha, October 14, 2011
 ---------------------------------
 
