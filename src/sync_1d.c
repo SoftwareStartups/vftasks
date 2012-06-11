@@ -43,6 +43,13 @@ vftasks_1d_sync_mgr_t *vftasks_create_1d_sync_mgr(int num_threads, int dist)
   vftasks_1d_sync_mgr_t *mgr;  /* pointer to the manager */
   int t;                       /* index */
 
+  /* check arguments */
+  if (num_threads < 1 || dist < 1)
+  {
+    _vftasks_abort_on_fail_sync_1d("vftasks_create_1d_mgr: invalid argument");
+    return NULL;
+  }
+
   /* allocate a manager */
   mgr = (vftasks_1d_sync_mgr_t *)malloc(sizeof(vftasks_1d_sync_mgr_t));
   if (mgr == NULL)
@@ -83,6 +90,12 @@ void vftasks_destroy_1d_sync_mgr(vftasks_1d_sync_mgr_t *mgr)
 {
   int t;  /* index */
 
+  /* check argument */
+  if (mgr == NULL)
+  {
+    _vftasks_abort_on_fail_sync_1d("vftasks_destroy_1d_mgr: invalid argument");
+  }
+
   /* destroy the semaphores held by the manager */
   for (t = 0; t < mgr->num_threads; ++t)
   {
@@ -101,6 +114,13 @@ void vftasks_destroy_1d_sync_mgr(vftasks_1d_sync_mgr_t *mgr)
 int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i)
 {
   int t;  /* index of the thread to signal to */
+
+  /* check arguments */
+  if (mgr == NULL || i < 0)
+  {
+    _vftasks_abort_on_fail_sync_1d("vftasks_signal_1d: invalid argument");
+    return 1;
+  }
 
   /* determing the index of the thread to signal to */
   t = (i + mgr->dist) % mgr->num_threads;
@@ -121,6 +141,13 @@ int vftasks_signal_1d(vftasks_1d_sync_mgr_t *mgr, int i)
 int vftasks_wait_1d(vftasks_1d_sync_mgr_t *mgr, int i)
 {
   int t; /* index of the executing thread */
+
+  /* check arguments */
+  if (mgr == NULL || i < 0)
+  {
+    _vftasks_abort_on_fail_sync_1d("vftasks_wait_1d: invalid argument");
+    return 1;
+  }
 
   /* determine the index of the executing thread */
   t = (i % mgr->num_threads);
