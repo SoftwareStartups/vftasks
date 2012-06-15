@@ -1,7 +1,7 @@
 vfTasks changelog
 ==================
 
-Version 1.1.4 alpha, June 2012
+Version 1.2, June 2012
 -------------------------------
 
 - Added support for 1-D synchronization
@@ -17,7 +17,7 @@ Version 1.1.2 alpha, May 26, 2011
 ---------------------------------
 
 - Added semaphore based synchronization in addition to busy wait
-- Removed false sharing in internal data structures 
+- Removed false sharing in internal data structures
 
 Version 1.1.1 alpha, May 18, 2011
 ---------------------------------

@@ -49,13 +49,18 @@ This file describes how to build, install & test the vfTasks library on your loc
     Check out their website for more information (http://sourceforge.net/projects/cppunit).
 
 The build has been verified on:
-  * Ubuntu 10.04 64 bits:
-    - gcc/g++ version 4.4.3
+  * Ubuntu 11.10 64 bits:
+    - gcc/g++ version 4.6.1
     - CppUnit version 1.12.1
-    - Doxygen 1.6.3
+    - Doxygen 1.7.4
 
   * Ubuntu 10.10 32 bits:
     - gcc/g++ version 4.4.5
+    - CppUnit version 1.12.1
+    - Doxygen 1.6.3
+
+  * Ubuntu 10.04 64 bits:
+    - gcc/g++ version 4.4.3
     - CppUnit version 1.12.1
     - Doxygen 1.6.3
 

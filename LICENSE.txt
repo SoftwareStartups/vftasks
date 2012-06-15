@@ -1,4 +1,4 @@
-Copyright (c) 2010-2011 Vector Fabrics B.V.
+Copyright (c) 2010-2012 Vector Fabrics B.V.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

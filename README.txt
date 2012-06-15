@@ -8,8 +8,8 @@ vfTasks
 
   For more information, visit http://www.vectorfabrics.com/technology/vftasks.
   vfTasks is developed by Vector Fabrics (http://vectorfabrics.com) and
-  complements Vector Fabrics' Pareon product
-  that help you parallelize a C application.
+  complements Vector Fabrics' Pareon product (http://vectorfabrics.com/products)
+  that helps you parallelize a C/C++ application.
 
 
 Installing
@@ -30,7 +30,7 @@ Documentation and Support
 Copyright
 =========
 
-  All of the code in this distribution is Copyright (c) 2011
+  All of the code in this distribution is Copyright (c) 2011, 2012
   Vector Fabrics B.V.
 
   The included LICENSE.txt file describes the license in detail.
