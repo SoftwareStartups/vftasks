@@ -15,20 +15,20 @@ INSTALL_LIBDIR = $(VFTASKSINSTALL)/$(PLATFORM)/lib
 default all: install
 
 install: check_env | $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR)
-	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. \
+	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. \
 	  -DINSTALLDIR=$(VFTASKSINSTALL) -DMAJOR=$(MAJOR) -DMINOR=$(MINOR) -DBUILD=$(BUILD) \
-	  -DPACKAGENAME=vftasks && make vftasks
+	  -DPACKAGENAME=vftasks && make vftasks)
 	cp -u $(LIB) $(INSTALL_LIBDIR)
 	cp -u $(INC) $(INSTALL_INCDIR)
 
 test: | $(BUILDDIR)
-	cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..
-	-cd $(BUILDDIR) && make unit_test run_test
+	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..)
+	make -C $(BUILDDIR) unit_test run_test
 
 release: install
-	cd $(BUILDDIR) && $(MAKE) package
+	$(MAKE) -C $(BUILDDIR) package
 	cp $(BUILDDIR)/vftasks$(MAJOR)$(MINOR)-$(MAJOR).$(MINOR).$(BUILD).deb $(VFTASKSINSTALL)
-	cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include
+	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include)
 
 $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
 	mkdir -p $@
