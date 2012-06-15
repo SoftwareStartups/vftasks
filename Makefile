@@ -1,8 +1,9 @@
 PLATFORM := $(shell scripts/platform)
 
-MAJOR := 1
-MINOR := 0
-BUILD := 0
+MAJOR_VERSION ?= 0
+MINOR_VERSION ?= 0
+BUILD_VERSION ?= 0
+VERSION := $(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_VERSION)
 
 BUILDDIR = build
 LIB = $(BUILDDIR)/src/libvftasks.a
@@ -16,7 +17,8 @@ default all: install
 
 install: check_env | $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. \
-	  -DINSTALLDIR=$(VFTASKSINSTALL) -DMAJOR=$(MAJOR) -DMINOR=$(MINOR) -DBUILD=$(BUILD) \
+	  -DINSTALLDIR=$(VFTASKSINSTALL) \
+	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
 	  -DPACKAGENAME=vftasks && make vftasks)
 	cp -u $(LIB) $(INSTALL_LIBDIR)
 	cp -u $(INC) $(INSTALL_INCDIR)
@@ -27,7 +29,7 @@ test: | $(BUILDDIR)
 
 release: install
 	$(MAKE) -C $(BUILDDIR) package
-	cp $(BUILDDIR)/vftasks$(MAJOR)$(MINOR)-$(MAJOR).$(MINOR).$(BUILD).deb $(VFTASKSINSTALL)
+	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
 	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include)
 
 $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
