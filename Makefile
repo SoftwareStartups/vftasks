@@ -6,33 +6,27 @@ BUILD_VERSION ?= 0
 VERSION := $(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_VERSION)
 
 BUILDDIR = build
-LIB = $(BUILDDIR)/src/libvftasks.a
-INC = include/vftasks.h
-INSTALL_INCDIR = $(VFTASKSINSTALL)/include
-INSTALL_LIBDIR = $(VFTASKSINSTALL)/$(PLATFORM)/lib
 
 .PHONY: default all clean clean_all install release check_env
 
 default all: install
 
-install: check_env | $(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR)
+install: check_env | $(BUILDDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. \
-	  -DINSTALLDIR=$(VFTASKSINSTALL) \
+	  -DINSTALLDIR=$(VFTASKSINSTALL) -DPLATFORM=$(PLATFORM) \
 	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
-	  -DPACKAGENAME=vftasks && make vftasks)
-	cp -u $(LIB) $(INSTALL_LIBDIR)
-	cp -u $(INC) $(INSTALL_INCDIR)
+	  -DPACKAGENAME=vftasks && make install package)
+	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
 
 test: | $(BUILDDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..)
 	make -C $(BUILDDIR) unit_test run_test
 
 release: install
-	$(MAKE) -C $(BUILDDIR) package
-	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
-	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include)
+	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include \
+	  vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb)
 
-$(BUILDDIR) $(INSTALL_INCDIR) $(INSTALL_LIBDIR):
+$(BUILDDIR):
 	mkdir -p $@
 
 check_env:

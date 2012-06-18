@@ -15,6 +15,8 @@ cmake_minimum_required(VERSION 2.6)
 
 project(vftasks)
 
+set(CMAKE_INSTALL_PREFIX "${INSTALLDIR}")
+
 check_c_compiler_flag(-Wall HAS_WALL_FLAG)
 if (${HAS_WALL_FLAG})
   add_definitions(-Wall)
