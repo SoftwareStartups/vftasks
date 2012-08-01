@@ -324,6 +324,9 @@ typedef struct vftasks_pool_s vftasks_pool_t;
  */
 typedef void (vftasks_task_t)(void *);
 
+
+__BEGIN_DECLS
+
 /* ***************************************************************************
  * Creation and destruction of worker-thread pools
  * ***************************************************************************/
@@ -1508,6 +1511,10 @@ void vftasks_timer_start(uint64_t *start);
  *                the starting timestamp.
  */
 uint64_t vftasks_timer_stop(uint64_t *start);
+
+
+__END_DECLS
+
 
 #endif /* __VFTASKS_H */
 
