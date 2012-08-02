@@ -11,7 +11,7 @@ PROJECT(Pareon)
 include_directories(../include)
 add_library(vftasks tasks.c sync_1d.c sync_2d.c streams.c semaphore.c timer.c)
 
-install(TARGETS vftasks DESTINATION ${PLATFORM}/lib)
+install(TARGETS vftasks DESTINATION lib/${CMAKE_LIBRARY_ARCHITECTURE})
 
 SET(CPACK_PACKAGE_NAME "${PACKAGENAME}${MAJOR}${MINOR}")
 SET(CPACK_PACKAGE_VENDOR "Vector Fabrics B.V.")
