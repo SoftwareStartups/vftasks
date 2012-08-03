@@ -23,7 +23,7 @@ test: | $(BUILDDIR)
 	make -C $(BUILDDIR) unit_test run_test
 
 release: install
-	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz $(PLATFORM) include \
+	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz lib include \
 	  vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb)
 
 $(BUILDDIR):
