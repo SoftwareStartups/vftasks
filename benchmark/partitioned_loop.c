@@ -82,7 +82,7 @@ int threading()
 
 int main()
 {
-  int result, cnt = 100;
+  int result = 0, cnt = 100;
   uint64_t time;
 
   /* only three workers needed, since one task is executed by the main thread */
@@ -91,11 +91,11 @@ int main()
   while (cnt--)
   {
     vftasks_timer_start(&time);
-    result = threading();
+    result += threading();
     printf("time elapsed %lu\n", vftasks_timer_stop(&time));
   }
 
   vftasks_destroy_pool(pool);
 
-  return 0;
+  return result == 76800 ? 0 : result;
 }
