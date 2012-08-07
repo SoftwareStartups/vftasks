@@ -1,7 +1,8 @@
 1 vfTasks Installation
 =======================
 
-This file describes how to build, install & test the vfTasks library on your local system.
+This file describes how to build, install & test the vfTasks library
+on your local system.
 
 
 2 Obtaining vfTasks
@@ -46,7 +47,8 @@ This file describes how to build, install & test the vfTasks library on your loc
     (http://www.microsoft.com/express/Downloads/#2010-Visual-CPP)
 
   * Installing CppUnit on Windows needs to be done from a source build.
-    Check out their website for more information (http://sourceforge.net/projects/cppunit).
+    Check out their website for more information
+    (http://sourceforge.net/projects/cppunit).
 
 The build has been verified on:
   * Ubuntu 11.10 64 bits:
@@ -81,11 +83,11 @@ The build has been verified on:
 -----------------
 
   * Build and install the library and headers:
-    $ cmake -DCMAKE_BUILD_TYPE=release ..
-    $ make install DESTDIR=<PATH_TO_INSTALL_DIR>
-    The vfTasks library is created in <PATH_TO_INSTALL_DIR>/usr/local/lib
-    The include files are located in <PATH_TO_INSTALL_DIR>/usr/local/include
-    When omitting DESTDIR, vftasks will be installed in /usr/local
+    $ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX=<PATH_TO_INSTALL_DIR> ..
+    $ make install
+    The vfTasks library is created in <PATH_TO_INSTALL_DIR>/lib/<PLATFORM>
+    The include files are located in <PATH_TO_INSTALL_DIR>/include
+    When omitting -DCMAKE_INSTALL_PREFIX, vftasks will be installed in /.
 
   * Build and run the unit tests:
     $ cmake -DCMAKE_BUILD_TYPE=debug ..
