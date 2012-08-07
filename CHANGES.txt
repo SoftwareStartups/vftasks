@@ -1,7 +1,7 @@
 vfTasks changelog
 ==================
 
-Version 1.2.1, July 2012
+Version 1.2.1, August 2012
 -------------------------------
 - Put extern "C" brackets in vftasks.h for inclusion in C++
 - Fixed install directory in build script
