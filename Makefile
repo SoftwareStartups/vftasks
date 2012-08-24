@@ -12,9 +12,9 @@ BUILDDIR = build
 default all: install
 
 install: check_env | $(BUILDDIR)
-	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=release .. \
+	(cd $(BUILDDIR) && cmake -Wdev -DCMAKE_BUILD_TYPE=release .. \
 	  -DCMAKE_INSTALL_PREFIX=$(VFTASKSINSTALL) \
-	  -DCMAKE_LIBRARY_ARCHITECTURE=$(PLATFORM) \
+	  -DCMAKE_LIBRARY_ARCHITECTURE=$(PLATFORM)-gnu \
 	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
 	  -DPACKAGENAME=vftasks && make install package)
 	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
