@@ -18,6 +18,7 @@ install: check_env | $(BUILDDIR)
 	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
 	  -DPACKAGENAME=vftasks && make install package)
 	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
+	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).rpm $(VFTASKSINSTALL)
 
 test: | $(BUILDDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..)
