@@ -7,6 +7,15 @@ VERSION := $(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_VERSION)
 
 BUILDDIR = build
 
+# VFA-2777: on Ubuntu 12.04 (cmake 2.8.7) fakeroot is implicit, whereas on older
+# versions, it needs to be prefixed explicitly.
+UBUNTU_VERSION := $(shell lsb_release -sr)
+ifeq ($(UBUNTU_VERSION),12.04)
+FAKEROOT :=
+else
+FAKEROOT := fakeroot
+endif
+
 .PHONY: default all clean clean_all install release check_env
 
 default all: install
@@ -16,7 +25,7 @@ install: check_env | $(BUILDDIR)
 	  -DCMAKE_INSTALL_PREFIX=$(VFTASKSINSTALL) \
 	  -DCMAKE_LIBRARY_ARCHITECTURE=$(PLATFORM)-gnu \
 	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
-	  -DPACKAGENAME=vftasks && make install package)
+	  -DPACKAGENAME=vftasks && make install && $(FAKEROOT) make package)
 	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
 
 test: | $(BUILDDIR)
