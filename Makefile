@@ -25,13 +25,15 @@ install: check_env | $(BUILDDIR)
 	  -DCMAKE_INSTALL_PREFIX=$(VFTASKSINSTALL) \
 	  -DCMAKE_LIBRARY_ARCHITECTURE=$(PLATFORM)-gnu \
 	  -DMAJOR=$(MAJOR_VERSION) -DMINOR=$(MINOR_VERSION) -DBUILD=$(BUILD_VERSION) \
-	  -DPACKAGENAME=vftasks && make install && $(FAKEROOT) make package)
+	  -DPACKAGENAME=vftasks && \
+	  $(MAKE) install && \
+	  $(FAKEROOT) $(MAKE) package)
 	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
 	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).rpm $(VFTASKSINSTALL)
 
 test: | $(BUILDDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..)
-	make -C $(BUILDDIR) unit_test run_test
+	$(MAKE) -C $(BUILDDIR) unit_test run_test
 
 release: install
 	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz lib include \
