@@ -6,6 +6,8 @@ BUILD_VERSION ?= 0
 VERSION := $(MAJOR_VERSION).$(MINOR_VERSION).$(BUILD_VERSION)
 
 BUILDDIR = build
+DEB_FILENAME := vftasks$(MAJOR_VERSION)$(MINOR_VERSION)_$(VERSION)-1_amd64.deb
+RPM_FILENAME := vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION)-1.x86_64.rpm
 
 # VFA-2777: on Ubuntu 12.04 (cmake 2.8.7) fakeroot is implicit, whereas on older
 # versions, it needs to be prefixed explicitly.
@@ -28,8 +30,8 @@ install: check_env | $(BUILDDIR)
 	  -DPACKAGENAME=vftasks && \
 	  $(MAKE) install && \
 	  $(FAKEROOT) $(MAKE) package)
-	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)
-	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).rpm $(VFTASKSINSTALL)
+	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb $(VFTASKSINSTALL)/$(DEB_FILENAME)
+	cp $(BUILDDIR)/vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).rpm $(VFTASKSINSTALL)/$(RPM_FILENAME)
 
 test: | $(BUILDDIR)
 	(cd $(BUILDDIR) && cmake -DCMAKE_BUILD_TYPE=debug ..)
@@ -37,7 +39,7 @@ test: | $(BUILDDIR)
 
 release: install
 	(cd $(VFTASKSINSTALL) && tar -czf vftasks.tgz lib include \
-	  vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION).deb)
+	  $(DEB_FILENAME) $(RPM_FILENAME))
 
 $(BUILDDIR):
 	mkdir -p $@
