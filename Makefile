@@ -14,6 +14,8 @@ RPM_FILENAME := vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION)-1.x86_64.rpm
 UBUNTU_VERSION := $(shell lsb_release -sr)
 ifeq ($(UBUNTU_VERSION),12.04)
 FAKEROOT :=
+else ifeq ($(UBUNTU_VERSION),12.10)
+FAKEROOT :=
 else
 FAKEROOT := fakeroot
 endif
