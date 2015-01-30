@@ -9,16 +9,13 @@ BUILDDIR = build
 DEB_FILENAME := vftasks$(MAJOR_VERSION)$(MINOR_VERSION)_$(VERSION)-1_amd64.deb
 RPM_FILENAME := vftasks$(MAJOR_VERSION)$(MINOR_VERSION)-$(VERSION)-1.x86_64.rpm
 
-# VFA-2777: on Ubuntu 12.04 (cmake 2.8.7) fakeroot is implicit, whereas on older
+# VFA-2777: on Ubuntu 12.04 and later (cmake 2.8.7) fakeroot is implicit, whereas on older
 # versions, it needs to be prefixed explicitly.
 UBUNTU_VERSION := $(shell lsb_release -sr)
-ifeq ($(UBUNTU_VERSION),12.04)
-FAKEROOT :=
-else ifeq ($(UBUNTU_VERSION),12.10)
-FAKEROOT :=
-else
-FAKEROOT := fakeroot
+ifeq "12.04" "$(word 2, $(sort 12.04 $(UBUNTU_VERSION)))"
+  FAKEROOT := fakeroot
 endif
+
 
 .PHONY: default all clean clean_all install release check_env
 
