@@ -796,6 +796,9 @@ HTML_FOOTER            = config/footer.html
 
 HTML_STYLESHEET        = config/vf.css
 
+HTML_EXTRA_FILES       = @CMAKE_CURRENT_SOURCE_DIR@/resources/header.png
+HTML_EXTRA_FILES      += @CMAKE_CURRENT_SOURCE_DIR@/resources/header_background.png
+
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes,
 # files or namespaces will be aligned in HTML using tables. If set to
 # NO a bullet list will be used.

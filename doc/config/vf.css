@@ -15,13 +15,13 @@ body {
 }
 
 #header_background {
-    background-image:url(http://www.vectorfabrics.com/assets/images/vftasks/header_background.jpg);
+    background-image:url("header_background.png");
     background-position:left top;
     background-repeat:repeat-x;
 }
 
 #header {
-    background-image:url(http://www.vectorfabrics.com/assets/images/vftasks/header.jpg);
+    background-image:url("header.png");
     background-position:left top;
     background-repeat:no-repeat;
     height:102px;
