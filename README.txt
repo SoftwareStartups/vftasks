@@ -1,3 +1,9 @@
+TODO
+====
+
+  - Remove vectorfabrics.com references, setup new wiki.
+  - Change license to MIT, SoftwareStartups
+
 vfTasks
 =======
 
