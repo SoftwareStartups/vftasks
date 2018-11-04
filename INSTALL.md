@@ -8,8 +8,7 @@ on your local system.
 2 Obtaining vfTasks
 ====================
 
-  1. Download vfTasks archive from the Vector Fabrics website
-     http://www.vectorfabrics.com/technology/vftasks.
+  1. Download vfTasks archive from github
 
   2. Unpack the vfTasks archive in a local directory.
      $ tar -zxvf vftasks-<version>.tar.gz

@@ -1,21 +1,12 @@
-/* Copyright (c) 2010-2011 Vector Fabrics B.V. All rights reserved.
- *
- * This file contains proprietary and confidential information of Vector
- * Fabrics and all use (including distribution) is subject to the conditions of
- * the license agreement between you and Vector Fabrics. Without such a license
- * agreement in place, no usage or distribution rights are granted by Vector
- * Fabrics.
- */
-
 #ifndef __VFTASKS_H
 #define __VFTASKS_H
 
 /** \mainpage vfTasks library API documentation
  *
  * \section sec_intro Introduction
- * This document describes the concepts behind Vector Fabrics' vfTasks
+ * This document describes the concepts behind the vfTasks
  * library and the programming interface to it.
- * Vector Fabrics' vfTasks offers the basic mechanisms that are needed to
+ * vfTasks offers the basic mechanisms that are needed to
  * parallellize your software:
  * - worker thread pools
  * - 2-D task synchronization
