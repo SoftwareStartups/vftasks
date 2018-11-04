@@ -31,12 +31,3 @@ Documentation and Support
   Note that the example in streams.c currently only runs on a POSIX-compliant system.
   See http://www.vectorfabrics.com/technology/vftasks for the example documentation
   or example/doc for offline documentation.
-
-
-Copyright
-=========
-
-  All of the code in this distribution is Copyright (c) 2011, 2012
-  Vector Fabrics B.V.
-
-  The included LICENSE.txt file describes the license in detail.
